@@ -99,8 +99,8 @@ second_part <- second_part %>%
   select(c(1:6))  
 
 # merge data frames  
-historic_values <- full_join(first_part,second_part)
-historic_values[, 1:5] <- sapply(historic_values[, 1:5], as.numeric)
+graph_historic_size <- full_join(first_part,second_part)
+graph_historic_size[, 1:5] <- sapply(graph_historic_size[, 1:5], as.numeric)
 # drop unnecessary data
 rm(first_part,second_part, url)
 ```
@@ -108,7 +108,7 @@ rm(first_part,second_part, url)
 ## Historic Size Bundestag Graph
 
 ``` r
-historic_values %>%
+graph_historic_size %>%
   distinct(`Jahr der Bundestagswahl`, .keep_all = TRUE) %>%
   select(c(`Jahr der Bundestagswahl`,`Sitze insgesamt`)) %>%
   ggplot(aes(x=`Jahr der Bundestagswahl`, y=`Sitze insgesamt`,group=1)) +
@@ -127,9 +127,9 @@ historic_values %>%
 
 ``` r
 # get data
-raw_data <- read.csv("https://www.bundeswahlleiter.de/dam/jcr/72f186bb-aa56-47d3-b24c-6a46f5de22d0/btw17_kerg.csv", header=F, sep=";", skip=1, stringsAsFactors = F, na.strings="")
+data_raw <- read.csv("https://www.bundeswahlleiter.de/dam/jcr/72f186bb-aa56-47d3-b24c-6a46f5de22d0/btw17_kerg.csv", header=F, sep=";", skip=1, stringsAsFactors = F, na.strings="")
 # keep raw data
-cleaned <- raw_data
+data_cleaned <- data_raw
 ```
 
 ### clean up raw data
@@ -137,38 +137,37 @@ cleaned <- raw_data
 ``` r
 # paste party names to second vote ("Zweitstimme"); logic if cell contains "Zweitstimme" grab party name from row 5, 2 cells to the left and paste it in front
 # similar logic for 'Erststimme'
-for(i in 1:ncol(cleaned)){
-  if(cleaned[6,i] %in% "Zweitstimmen"){
-    cleaned[6,i] <- paste(cleaned[5,i-2], cleaned[6,i])
+for(i in 1:ncol(data_cleaned)){
+  if(data_cleaned[6,i] %in% "Zweitstimmen"){
+    data_cleaned[6,i] <- paste(data_cleaned[5,i-2], data_cleaned[6,i])
   }
-  if(cleaned[6,i] %in% "Erststimmen"){
-    cleaned[6,i] <- paste(cleaned[5,i], cleaned[6,i])
+  if(data_cleaned[6,i] %in% "Erststimmen"){
+    data_cleaned[6,i] <- paste(data_cleaned[5,i], data_cleaned[6,i])
   }
 }
 
 # set new column names to names in sixth row
-colnames(cleaned) <- cleaned[6,] 
+colnames(data_cleaned) <- data_cleaned[6,] 
 # remove extra rows
-cleaned <- cleaned[-(1:7),] 
+data_cleaned <- data_cleaned[-(1:7),] 
 # rename first to third column
-colnames(cleaned)[1:3] <- c("wahlkreisnummer","wahlkreisname", "Bundesland") 
+colnames(data_cleaned)[1:3] <- c("wahlkreisnummer","wahlkreisname", "Bundesland") 
 # remove rows with missing values for 'Bundesland' (state) variable
-cleaned <- cleaned[!(is.na(cleaned$Bundesland)),] 
+data_cleaned <- data_cleaned[!(is.na(data_cleaned$Bundesland)),] 
 
 # delete every second row from the third row onwards; logic: keep all columns whose name contain the letter "n"
-cleaned = cleaned[,grepl("*n",names(cleaned))] 
+data_cleaned = data_cleaned[,grepl("*n",names(data_cleaned))] 
 # every row expect the first two as numeric
-number_col <- ncol(cleaned)
+number_col <- ncol(data_cleaned)
 for(i in 3:number_col){
-  cleaned[[i]] <- as.numeric(cleaned[[i]])
+  data_cleaned[[i]] <- as.numeric(data_cleaned[[i]])
 } 
 
 # drop aggregate values for each state
-cleaned<-cleaned[!(cleaned$`Bundesland`==99),]
+data_cleaned<-data_cleaned[!(data_cleaned$`Bundesland`==99),]
 
 # all columns as numeric
-cleaned[, 3:97] <- sapply(cleaned[, 3:97], as.numeric)
-
+data_cleaned[, 3:97] <- sapply(data_cleaned[, 3:97], as.numeric)
 
 # remove not needed values:
 rm(i,number_col)
@@ -177,7 +176,7 @@ rm(i,number_col)
 ### double check all counties included:
 
 ``` r
-nrow(cleaned)
+nrow(data_cleaned)
 ```
 
     ## [1] 299
@@ -189,7 +188,7 @@ the parties to only include the ones included in the Bundestag to save
 space. Add id for matching with the shape files.
 
 ``` r
-election_map <- cleaned %>% 
+map_actual_election <- data_cleaned %>% 
   select(starts_with("wahlkreis") | contains("Erststimme")) %>%
   select(-c(3:6)) %>%
   gather('Partei','Stimmen', `Christlich Demokratische Union Deutschlands Erststimmen`:`Übrige Erststimmen`) %>%
@@ -209,13 +208,12 @@ election_map <- cleaned %>%
   mutate(id=wahlkreisnummer-1,id=as.character(id))
 ```
 
-actual map
+Add shape files
 
 ``` r
 # all election maps borrows heavily from https://interaktiv.morgenpost.de/analyse-bundestagswahl-2017/data/btw17_analysis.html
 # load state borders and shapes of the constituencies
-# You can download them here: https://interaktiv.morgenpost.de/analyse-bundestagswahl-2017/data/btw17-shapes.zip
-bund_shp <- readOGR("btw17-shapes/bundeslaender_small.shp", "bundeslaender_small", stringsAsFactors=FALSE, encoding="latin1") %>% broom::tidy()
+shp_bund <- readOGR("btw17-shapes/bundeslaender_small.shp", "bundeslaender_small", stringsAsFactors=FALSE, encoding="latin1") %>% broom::tidy()
 ```
 
     ## OGR data source with driver: ESRI Shapefile 
@@ -235,27 +233,49 @@ wahlkreise <- readOGR("btw17-shapes/wahlkreise_small.shp", "wahlkreise_small", s
     ## Integer64 fields read as strings:  WKR_NR
 
 ``` r
-krs_shp <- wahlkreise %>% broom::tidy() # broom to tidy shape data to make it work smoothly with the graphic package ggplot2
-                                                        
-btw_plot <- merge(krs_shp, election_map, by="id", all.y=T) # merge shapes with vote data by id
+shp_krs <- wahlkreise %>% broom::tidy() # broom to tidy shape data to make it work smoothly with the graphic package ggplot2
+rm(wahlkreise)                                                  
+map_actual_election <- merge(shp_krs, map_actual_election, by="id", all.y=T) # merge shapes with vote data by id
+```
 
+## Election Map 2017
 
+``` r
 # actual graph
-ggplot(data=btw_plot, aes(x=long, y=lat, group=group))+
+ggplot(data=map_actual_election, aes(x=long, y=lat, group=group))+
   geom_polygon(aes(fill=Partei), show.legend = T) +
-  geom_polygon(data=krs_shp, aes(x=long, y=lat, group=group), fill=NA, color="white", size=0.4) +
+  geom_polygon(data=shp_krs, aes(x=long, y=lat, group=group), fill=NA, color="white", size=0.4) +
   scale_fill_manual(values=c("royalblue1", "#32302e", "blue4", "#46962b", "magenta1", "#E3000F")) +
   theme_void() + # remove axes
   coord_map() # apply projection
 ```
 
-![](README_figs/election_map-1.png)<!-- -->
-
-``` r
-# colors: AFD =royalblue1 ; CDU = #32302e ; CSU = blue4 ; GRÜNE = #46962b ; LINKE = magenta1 ; SPD = #E3000F ;
-```
+![](README_figs/map_actual_election-1.png)<!-- -->
 
 ## State Data Frames
 
-create a data set for each state (Land=number to differentiate between
-states):
+Replace state numbers with names create a data set for each state
+(Land=number to differentiate between states):
+
+``` r
+# replace numbers with names for states for easier understanding
+state <- c("SCH","HAM","NDS","BRE","NRW","HES","RHN","BAD","BAY","SAR","BER","BRA","MEC","SAC","SAA","THU")
+data_state <- paste( "data_state_",state, sep="")
+# data frame / vector for the number of seats allocated for each state. The reason for doing this by hand
+# stems from the fact that it has already been calculated by the Bundeswahlleiter in the past. Moreover, the formal rule of
+# 2 * counties = seats does not always apply due to rounding. 
+# source: https://www.bundeswahlleiter.de/dam/jcr/dd81856b-7711-4d9f-98dd-91631ddbc37f/btw17_sitzberechnung.pdf
+seats <- c(22,12,59,5,128,43,30,76,93,7,24,20,13,32,17,17)
+state_allocated_seats <- data.frame(state, seats)
+```
+
+### split data frame into data frames for each state. We need this as later on each state is it’s own maxmization problem
+
+``` r
+for (i in 1:16) {
+  data_cleaned <- data_cleaned %>% mutate(Bundesland=replace(Bundesland, Bundesland==i, state[i]))
+  assign(paste0(data_state[i]), data_cleaned[data_cleaned$Bundesland==state[i],])
+}
+# drop values not needed:
+rm(i)
+```
