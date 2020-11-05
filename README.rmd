@@ -1,9 +1,17 @@
-Ueberhangmandate
-================
+---
+title: "Ueberhangmandate"
+output: rmarkdown::github_document
+---
+  
+  ```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  fig.path = "README_figs/"
+)
+```
 
 ## Packages
 
-``` r
+```{r packages, message=FALSE}
 library(tidyr)
 library(dplyr)
 library(lpSolveAPI)
@@ -13,9 +21,9 @@ library(grid)
 library(ggplot2)
 ```
 
-## Theme
 
-``` r
+## Theme
+```{r theme}
 hp_theme <- function(base_size = 13, base_family = "") {
   theme_grey(base_size = base_size, base_family = base_family) %+replace%
     theme(
@@ -60,7 +68,7 @@ hp_theme <- function(base_size = 13, base_family = "") {
 
 ## Historic Size Bundestag Data Set
 
-``` r
+```{r historic_size_data, error=FALSE, message=FALSE, warning=FALSE}
 # read in source
 url <- 'https://www.bundeswahlleiter.de/service/glossar/u/ueberhangmandate.html'
 # first table [until 2009](before current election reform): no adjustments for Überhangmandate
@@ -103,8 +111,7 @@ rm(first_part,second_part, url)
 ```
 
 ## Historic Size Bundestag Graph
-
-``` r
+```{r historic_size_graph}
 historic_values %>%
   distinct(`Jahr der Bundestagswahl`, .keep_all = TRUE) %>%
   select(c(`Jahr der Bundestagswahl`,`Sitze insgesamt`)) %>%
@@ -116,6 +123,8 @@ historic_values %>%
   hp_theme() + theme(axis.text= element_text(size=7.5), axis.title.x = element_blank(),plot.title.position = "plot",  axis.title.y = element_blank(), panel.grid.major.x = element_blank(), panel.grid.major.y = element_line(size=.2, color="#656565"), axis.line.x=element_line( size=.3, color="black"), legend.position = "right", legend.key = element_blank(), axis.ticks.y = element_blank(), axis.ticks.x =element_line( size=.3, color="black"), plot.caption=element_text(size=5), axis.text.x=element_text(color="black"))
 ```
 
-![](README_figs/historic_size_graph-1.png)<!-- -->
+```{r historic_size_graph_pic,echo=FALSE, eval=FALSE}
+ggsave("./HP_pic/historic_size_graph.jpg",width=4, height=3)
+```
 
 ## 2017 Election Data Preparation
