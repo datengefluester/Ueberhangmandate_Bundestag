@@ -12,11 +12,16 @@ knitr::opts_chunk$set(
 ## Packages
 
 ```{r packages, message=FALSE}
+# data manipulation
 library(tidyr)
 library(dplyr)
+# optimization
 library(lpSolveAPI)
+#web scrapping
 library(rvest)
+#structure replacement Überhang to Ueberhang etc.
 library(stringr)
+# plots
 library(grid)
 library(ggplot2)
 # packages for maps
@@ -315,7 +320,7 @@ for (i in 1:16) {
   # save to data frame  
   assign(paste0(dynamic_state[i]), loop,)
   # remove not needed values
-  rm(loop,loop_state)
+  rm(loop,loop_state,i)
   }
 ```
 
@@ -354,17 +359,207 @@ assign(paste0(dynamic_state[i]), loop_state,)
 
 }
 ```
+check and clean up
 ```{r check}
 # check whether operation successful
 all.equal(seats, test)
 
 # cleanup
-rm(loop_state,number,allocated_seats,test)
+rm(loop_state,number,allocated_seats,test,i)
 
 ```
 
-# Optimal Allocation
+# Optimal Allocation preparation
 ```{r optimal_allocation}
-# Placeholder
 
+for (i in 1:16) {
+
+# change loop data set for easy coding  
+  loop_state <- get(data_state[i])
+
+# drop all variables for Zweitstimme as we are only concerned with Erststimme from now on
+  loop_state <- loop_state[,!grepl("Zweitstimme",names(loop_state))]
+  
+# only keep parties represented in the parliament as only mandates for these parties will decrease the overall size
+loop_state <-  loop_state %>% 
+                  select(c(1:3,8:14)) %>% 
+                  rename(  CDU = `Christlich Demokratische Union Deutschlands Erststimmen`,
+                           SPD = `Sozialdemokratische Partei Deutschlands Erststimmen`,
+                           LINKE = `DIE LINKE Erststimmen`,
+                           GRÜNE = `BÜNDNIS 90/DIE GRÜNEN Erststimmen`,
+                           CSU = `Christlich-Soziale Union in Bayern e.V. Erststimmen`,
+                           FDP = `Freie Demokratische Partei Erststimmen`,
+                           AFD = `Alternative für Deutschland Erststimmen`)
+
+# get highest amount of Erststimmen for each Wahlkreis: note -1 for parties which had no candidate.
+# A negative number is required here as later on when calculating the votes needed, negative numbers
+# result in higher numbers, which means they're not selected. (see. next step)
+  loop_state[is.na(loop_state)] <- -1
+
+# get hightest number of votes for each Wahlkreis so we can calculate differences   
+   loop_state$max <- apply(loop_state[, 4:10], 1, max)
+
+# get difference in votes for each Wahlkreis
+        for (x in 1:nrow(loop_state)){
+        max <- loop_state[x,11]
+        for (y in 4:10){
+        loop_state[x,y] <- loop_state[x,y]-max
+        }
+   }   
+  
+# sort by wahlkreisnummer - so you can match by rownumber later on
+# as matrix from maximizing has no wahlkreisnummer
+loop_state <- loop_state %>% 
+                  mutate(wahlkreisnummer=as.numeric(wahlkreisnummer)) %>% 
+                  arrange(wahlkreisnummer) %>%
+                   mutate(matching=1:nrow(loop_state))
+   
+
+# save to data frame  
+assign(paste0(data_state[i]), loop_state,)
+
+# cleanup
+rm(loop_state,i,x,y)    
+
+}
+
+```
+
+
+# Actual Optimization
+```{r optimization}
+for (i in 1:16) {
+# create loop dummy datasets so coding gets easier
+loop_state <- get(dynamic_state[i])
+
+# 1. constrains: Zweitstimmenmandate
+  max_seats <- loop_state$mandate 
+
+# keep only variables needed for calculation (difference the from maximum votes)
+  loop_state <- get(data_state[i])
+  calculation <- loop_state %>% 
+                              select(4:10) %>% 
+                              as.matrix()
+
+
+# ----- max sitze pro partei: 1. change order parteien  2. create vector maximale sitze nach zweitstimmen
+# ----- https://stackoverflow.com/questions/31813686/lpsolve-in-r-with-character-and-column-sum-contraints  
+  
+# dimensions matrix
+  n_wahlkreise <- nrow(calculation)
+  n_parteien <- ncol(calculation)
+  ncol = n_wahlkreise*n_parteien 
+  
+  lp_matching <- make.lp(ncol=ncol)
+#we want integer assignments and minimize the votes changed for the optimal solution with no Überhangmandaten
+  set.type(lp_matching, columns=1:ncol, type = c("integer"))
+  set.objfn(lp_matching, calculation)
+  lp.control(lp_matching,sense='max')
+ 
+# X1p + x2p + x3p ... + x28p <= 1 for each wahlkreis
+  
+# solution vector which contains 1s with length equal to number of wahlkreisen
+  max_pro_wahlkreis <- replicate(n_wahlkreise, 1)   
+  
+  Add_Max_wahlkreis_constraint <- function (wahlkreis_index) {
+    wahlkreis_cols <- (0:(n_parteien-1))*n_wahlkreise + wahlkreis_index
+    add.constraint(lp_matching, rep(1,n_parteien), indices=wahlkreis_cols,type = c("="), rhs=1)
+  }
+  
+# Add a max_number constraint for each program
+  lapply(1:n_wahlkreise, Add_Max_wahlkreis_constraint)
+  
+# 2. step: max values for each party
+  mandate.value <- rep(1, n_wahlkreise) # Add that each mandate is worth on mandate  
+  
+  Add_max_sitze_constraint <- function (partei_index) {
+    partei_cols <- (partei_index-1)*n_wahlkreise + (1:n_wahlkreise) #relevant columns for a given room
+    add.constraint(lp_matching, xt=mandate.value, indices=partei_cols, rhs=max_seats[partei_index])
+  }
+  
+# Add a max_number constraint for each party
+  lapply(1:n_parteien, Add_max_sitze_constraint)
+  
+# 10. solve this:
+  solve(lp_matching)
+  get.variables(lp_matching)  
+  
+# 11. create dataset (ncol=7  as seven parties in parliament)
+  calculation <- get.variables(lp_matching) %>% 
+                  matrix(ncol=7)  %>%
+                  as.data.frame() %>%
+                    rename(CDU_county = 1,
+                          SPD_county = 2,
+                          LINKE_county = 3,
+                          GRÜNE_county = 4,
+                          CSU_county = 5,
+                          FDP_county = 6,
+                          AFD_county = 7)
+# 12. variable for matching
+  calculation$matching <- 1:nrow(calculation)
+  
+# 13 .matching
+  calculation <- merge(loop_state,calculation,by="matching")  
+ 
+# save to data frame  
+assign(paste0(data_state[i]), calculation,)  
+  
+# clean up
+#  rm(i)
+}
+```
+
+
+
+
+# Creating Variables
+```{r optimization_clean_up,warning=FALSE}
+for (i in 1:16) {
+    clean_up <- get(data_state[i])
+# variable indicating winner when optimised
+    clean_up <- clean_up %>%
+                  mutate(mandate_optimisation="CDU") %>%
+                  mutate(mandate_optimisation=replace(mandate_optimisation, SPD_county == 1, "SPD"),
+                        mandate_optimisation=replace(mandate_optimisation, LINKE_county == 1, "LINKE"), 
+                        mandate_optimisation=replace(mandate_optimisation, GRÜNE_county == 1, "GRÜNE"),
+                        mandate_optimisation=replace(mandate_optimisation, CSU_county == 1, "CSU"),
+                        mandate_optimisation=replace(mandate_optimisation, FDP_county == 1, "FPD"),
+                        mandate_optimisation=replace(mandate_optimisation, AFD_county == 1, "AFD"))
+    
+    
+# get actual direkt Mandate Party name for each Wahlkreis (logic: normal winner = 0)
+  
+  clean_up <- clean_up %>%
+                mutate(mandate_actual="CDU") %>%
+                mutate(mandate_actual=replace(mandate_actual, SPD==0, "SPD"),
+                      mandate_actual=replace(mandate_actual, LINKE==0, "LINKE"),
+                      mandate_actual=replace(mandate_actual, GRÜNE==0, "GRÜNE"),
+                      mandate_actual=replace(mandate_actual, CSU==0, "CSU"),
+                      mandate_actual=replace(mandate_actual, FDP==0, "FDP"),
+                      mandate_actual=replace(mandate_actual, AFD==0, "AFD"))
+          
+  
+# voter change needed for optimisation  
+  clean_up <- clean_up %>%
+                 mutate(votes_needed=0) %>%
+                 mutate(votes_needed=replace(votes_needed, CDU_county == 1, CDU),
+                         votes_needed=replace(votes_needed, SPD_county == 1, SPD),
+                         votes_needed=replace(votes_needed, LINKE_county == 1, LINKE),
+                         votes_needed=replace(votes_needed, GRÜNE_county == 1, GRÜNE),
+                         votes_needed=replace(votes_needed, CSU_county == 1, CSU),
+                         votes_needed=replace(votes_needed, AFD_county == 1, AFD),
+                         votes_needed=replace(votes_needed, FDP_county == 1, FDP)) %>%
+                mutate(votes_needed=votes_needed*-1)
+  
+#  divide by two as half amount would already amount to swing
+  clean_up <- clean_up %>% mutate(votes_halved= ceiling(votes_needed/2))
+ 
+}
+```
+ 
+
+# CLEANUP
+```{r backup,echo=FALSE, eval=FALSE}
+# Zeile 366
+# select(-c(13:19))
 ```
