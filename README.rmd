@@ -265,6 +265,10 @@ for (i in 1:16) {
 }
 # drop values not needed:
 rm(i)
+
+#export clean and raw data set
+write.csv(data_raw,"raw.csv", row.names = TRUE)
+write.csv(data_cleaned,"cleaned.csv", row.names = TRUE)
 ```
 
 
