@@ -314,11 +314,14 @@ parties in the parliament
 ``` r
 # Additionally replace numbers with names for states for easier understanding. 
 # 'state' vector for state names; 'data_state' vector needed for the names of the individual state data frames.
+# Additionally a clean data frame for each state as a potential backup source. 
   state <- c("SCH","HAM","NDS","BRE","NRW","HES","RHN","BAD","BAY","SAR","BER","BRA","MEC","SAC","SAA","THU")
+  clean_state <- paste( "clean_",state, sep="")
   data_state <- paste( "state_",state, sep="")
 # create data frames
   for (i in 1:16) {
     cleaned <- cleaned %>% mutate(Bundesland=replace(Bundesland, Bundesland==i, state[i]))
+    assign(paste0(clean_state[i]), cleaned[cleaned$Bundesland==state[i],])
     assign(paste0(data_state[i]), cleaned[cleaned$Bundesland==state[i],])
   rm(i)}
 ```
@@ -360,9 +363,9 @@ for (i in 1:16) {
 
 ### Get right mandate allocation per party per state for 2017 election.
 
-Note: for the method described by law you would only add or subtract one
+Note: for the method described by law you would only add or subtract 1
 (instead of 10). However, this will make the code run significantly
-slower. If you have time to spare feel free to modify the code.
+slower. If you have time to spare, feel free to modify the code.
 
 ``` r
 # seats per party
@@ -412,6 +415,10 @@ slower. If you have time to spare feel free to modify the code.
     ## [1] TRUE
 
 ``` r
+  rm(test)
+```
+
+``` r
 # double check: whether mandates by party add up to numbers from Bundeswahlleiter:
 # get all mandates per party from each state
   test2 <- state_SCH_dynamic %>% select(partei,mandate)
@@ -446,7 +453,7 @@ slower. If you have time to spare feel free to modify the code.
 
 ``` r
 # cleanup
-  rm(test,test2)
+  rm(test2)
 ```
 
 # Optimal Allocation preparation
@@ -457,11 +464,13 @@ for (i in 1:16) {
 # change loop data set for easy coding  
   loop_state <- get(data_state[i])
 
-# drop all variables for Zweitstimme as we are only concerned with Erststimme from now on
+# drop all variables for 'Zweitstimme' (second vote), as we are only concerned with 'Erststimme' (first/direct vote) 
+# from now on so it will be easier to follow this way.
+# (we have the sum of second votes saved in the "state_XXX" data frames and the clean_XXX data frames for backup to be able to double check)
   loop_state <- loop_state[,!grepl("Zweitstimme",names(loop_state))]
   
 # only keep parties represented in the parliament as only mandates for these parties will decrease the overall size
-loop_state <-  loop_state %>% 
+  loop_state <-  loop_state %>% 
                   select(c(1:3,8:14)) %>% 
                   rename(  CDU = `Christlich Demokratische Union Deutschlands Erststimmen`,
                            SPD = `Sozialdemokratische Partei Deutschlands Erststimmen`,
@@ -471,73 +480,89 @@ loop_state <-  loop_state %>%
                            FDP = `Freie Demokratische Partei Erststimmen`,
                            AFD = `Alternative für Deutschland Erststimmen`)
 
-# get highest amount of Erststimmen for each Wahlkreis: note -1 for parties which had no candidate.
+# get highest amount of 'Erststimmen' for each 'Wahlkreis': note -1 for parties which had no candidate.
 # A negative number is required here as later on when calculating the votes needed, negative numbers
 # result in higher numbers, which means they're not selected. (see. next step)
   loop_state[is.na(loop_state)] <- -1
 
-# get hightest number of votes for each Wahlkreis so we can calculate differences   
+# get highest number of votes for each 'Wahlkreis' so we can calculate differences   
    loop_state$max <- apply(loop_state[, 4:10], 1, max)
 
-# get difference in votes for each Wahlkreis
+# get difference from max of votes for each 'Wahlkreis' per party:
+# we need this so we can apply the minimization optimization in the next step.
         for (x in 1:nrow(loop_state)){
         max <- loop_state[x,11]
         for (y in 4:10){
         loop_state[x,y] <- max-loop_state[x,y]
         }
-   }   
+        }
+   
+# for graph: get margin from highest to second highest
+  loop_state$second_party <- apply(loop_state[, 4:10], 1, function(x) names(sort(x)[2]))
+ 
+
+   
   
-# sort by wahlkreisnummer - so you can match by rownumber later on
-# as matrix from maximizing has no wahlkreisnummer
-loop_state <- loop_state %>% 
-                  mutate(wahlkreisnummer=as.numeric(wahlkreisnummer)) %>% 
-                  arrange(wahlkreisnummer) %>%
-                   mutate(matching=1:nrow(loop_state))
+# sort by 'wahlkreisnummer' - so you can match by row number later on
+# as matrix from minimization has no 'wahlkreisnummer' but it sorted by rows in this data frame.
+# Also drop max of votes received as no longer needed.
+  loop_state <- loop_state %>% 
+                    mutate(wahlkreisnummer=as.numeric(wahlkreisnummer)) %>% 
+                    arrange(wahlkreisnummer) %>%
+                    mutate(matching=1:nrow(loop_state)) %>%
+                    select(-c(max))
    
 
+  
 # save to data frame  
-assign(paste0(data_state[i]), loop_state,)
+  assign(paste0(data_state[i]), loop_state,)
 
 # cleanup
-rm(loop_state,i,x,y)    
+  rm(loop_state,i,x,y,max)    
 
 }
 ```
 
 # Actual Optimization
 
+Note: we have two constraints: 1. The amount of mandates in total
+awarded two a party should not exceed the amount of mandates a party is
+entitled to according to the Zweitstimmen (second votes). 2. Each county
+(wahlkreis) should only have one direct candidate.
+
 ``` r
 for (i in 1:16) {
 # create loop dummy datasets so coding gets easier
 loop_state <- get(dynamic_state[i])
 
-# 1. constrains: Zweitstimmenmandate
+# 1. constrain: Zweitstimmenmandate
   max_seats <- loop_state$mandate 
 
-# keep only variables needed for calculation (difference the from maximum votes)
+# keep only variables needed for calculation (difference from maximum votes per party)
+# as this is the only thing that matters for the calculation. 
   loop_state <- get(data_state[i])
   calculation <- loop_state %>% 
                               select(4:10) %>% 
                               as.matrix()
 
 
-# ----- max sitze pro partei: 1. change order parteien  2. create vector maximale sitze nach zweitstimmen
-# ----- https://stackoverflow.com/questions/31813686/lpsolve-in-r-with-character-and-column-sum-contraints  
+# the follow steps borrow heavily from: https://stackoverflow.com/questions/31813686/lpsolve-in-r-with-character-and-column-sum-contraints  
   
-# dimensions matrix
+# obtain dimensions matrix
   n_wahlkreise <- nrow(calculation)
   n_parteien <- ncol(calculation)
   ncol = n_wahlkreise*n_parteien 
   
   lp_matching <- make.lp(ncol=ncol)
-#we want integer assignments and minimize the votes changed for the optimal solution with no Überhangmandaten
+  
+# we want integer assignments and minimize the votes changed for the optimal solution with no Überhangmandaten
   set.type(lp_matching, columns=1:ncol, type = c("integer"))
   set.objfn(lp_matching, calculation)
-  lp.control(lp_matching,sense='max')
+  lp.control(lp_matching,sense='min')
  
-# X1p + x2p + x3p ... + x28p <= 1 for each wahlkreis
+# 2. constrain: one mandate per county 'wahlkreisen'
   
-# solution vector which contains 1s with length equal to number of wahlkreisen
+# solution vector which contains 1s with length equal to number of 'wahlkreisen'
   max_pro_wahlkreis <- replicate(n_wahlkreise, 1)   
   
   Add_Max_wahlkreis_constraint <- function (wahlkreis_index) {
@@ -545,21 +570,21 @@ loop_state <- get(dynamic_state[i])
     add.constraint(lp_matching, rep(1,n_parteien), indices=wahlkreis_cols,type = c("="), rhs=1)
   }
   
-# Add a max_number constraint for each program
+# Add a max_number constraint for each wahlkreis
   lapply(1:n_wahlkreise, Add_Max_wahlkreis_constraint)
   
-# 2. step: max values for each party
+# Add max values for each party (first constraint)
   mandate.value <- rep(1, n_wahlkreise) # Add that each mandate is worth on mandate  
   
   Add_max_sitze_constraint <- function (partei_index) {
-    partei_cols <- (partei_index-1)*n_wahlkreise + (1:n_wahlkreise) #relevant columns for a given room
+    partei_cols <- (partei_index-1)*n_wahlkreise + (1:n_wahlkreise) 
     add.constraint(lp_matching, xt=mandate.value, indices=partei_cols, rhs=max_seats[partei_index])
   }
   
 # Add a max_number constraint for each party
   lapply(1:n_parteien, Add_max_sitze_constraint)
   
-# 10. solve this:
+# Actual calculation and obtain dummies indicating, which party a 'wahlkreis' goes to
   solve(lp_matching)
   get.variables(lp_matching)  
   
@@ -581,17 +606,20 @@ loop_state <- get(dynamic_state[i])
   calculation <- merge(loop_state,calculation,by="matching")  
  
 # save to data frame  
-assign(paste0(data_state[i]), calculation,)  
+  assign(paste0(data_state[i]), calculation,)  
   
 # clean up
-#  rm(i)
+rm(i,lp_matching,mandate.value,max_pro_wahlkreis,max_seats,n_parteien,n_wahlkreise,ncol,Add_max_sitze_constraint,Add_Max_wahlkreis_constraint,calculation)
 }
 ```
 
 # Creating Variables
 
 ``` r
+margins <- data.frame(wahlkreisnummer=numeric(), margin=numeric())
+
 for (i in 1:16) {
+ 
     clean_up <- get(data_state[i])
 # variable indicating winner when optimised
     clean_up <- clean_up %>%
@@ -625,13 +653,67 @@ for (i in 1:16) {
                          votes_needed=replace(votes_needed, GRÜNE_county == 1, GRÜNE),
                          votes_needed=replace(votes_needed, CSU_county == 1, CSU),
                          votes_needed=replace(votes_needed, AFD_county == 1, AFD),
-                         votes_needed=replace(votes_needed, FDP_county == 1, FDP)) %>%
-                mutate(votes_needed=votes_needed*-1)
+                         votes_needed=replace(votes_needed, FDP_county == 1, FDP)) 
+
   
+# margins between first and second as dataframe for graph  
+  clean_up <- clean_up %>%
+                 mutate(margin=0) %>%
+                 mutate(margin=replace(margin, second_party == "CDU", CDU),
+                         margin=replace(margin, second_party == "SPD", SPD),
+                         margin=replace(margin, second_party == "LINKE", LINKE),
+                         margin=replace(margin, second_party == "GRÜNE", GRÜNE),
+                         margin=replace(margin, second_party == "CSU", CSU),
+                         margin=replace(margin, second_party == "AFD", AFD),
+                         margin=replace(margin, second_party == "FDP", FDP))
+
+  margins_placeholder <- clean_up %>% select(wahlkreisnummer,margin)
+  margins <- rbind(margins,margins_placeholder)
+    
 #  divide by two as half amount would already amount to swing
   clean_up <- clean_up %>% mutate(votes_halved= ceiling(votes_needed/2))
- 
+
+# save to data frame  
+  assign(paste0(data_state[i]), clean_up,)    
+
+# cleanup
+  rm(loop_state,i,margins_placeholder)
 }
 ```
 
-# CLEANUP
+# WHY 0???????????????????
+
+test \<- state\_HAM
+
+test \<- state\_HAM %\>% mutate(margin=NA) %\>%
+mutate(margin=replace(margin, second\_party == “CDU” & is.na(margin),
+CDU)), margin=replace(margin, second\_party == “SPD”, SPD),
+margin=replace(margin, second\_party == “LINKE”, LINKE),
+margin=replace(margin, second\_party == “GRÜNE”, GRÜNE),
+margin=replace(margin, second\_party == “CSU”, CSU),
+margin=replace(margin, second\_party == “AFD”, AFD),
+margin=replace(margin, second\_party == “FDP”, FDP))
+
+# Margins Graph - CHANGE LIMIT X AXIS?
+
+``` r
+margins %>% 
+  filter(margin!=0) %>%
+  arrange(desc(margin)) %>%
+  mutate(number=1:n()/299)%>%
+    ggplot(aes(y=number,x=margin)) +
+      geom_smooth(span = 0.1,color="#009E73") +
+      scale_y_continuous(limits = c(0, 1.01),
+                       breaks = c(seq(0.25,1,0.25)),
+                       expand = c(0, 0), 
+                       labels=c("0.25" = "25", "0.5"="50", "0.75"="75", "1"="100 %")) +
+      scale_x_continuous(breaks =c(2000,20000,40000,60000),
+                         labels=c("2000" = "XXXX", "20000"="20000", "40000"="40000", "60000"="60000")) +
+      labs(title = "Kummulierte Anzahl an Wahlkreise nach Abstand Erst- und Zweitstimme", subtitle="X Prozent der Wahlkreis Abstand X oder kleiner",caption = "Quelle: Bundeswahlleiter") +
+      hp_theme() + theme(axis.text= element_text(size=7.5), axis.title.x = element_blank(),plot.title.position = "plot",  axis.title.y = element_blank(), 
+                       panel.grid.major.x = element_blank(), panel.grid.major.y = element_line(size=.2, color="#656565"), axis.line.x=element_line( size=.3, color="black"),
+                       legend.position = "right", legend.key = element_blank(), axis.ticks.y = element_blank(), axis.ticks.x =element_line( size=.3, color="black"),
+                       plot.caption=element_text(size=5), axis.text.x=element_text(color="black"))
+```
+
+![](README_figs/margins_graph-1.png)<!-- -->
