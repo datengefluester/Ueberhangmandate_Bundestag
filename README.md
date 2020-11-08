@@ -316,14 +316,15 @@ parties in the parliament
 # 'state' vector for state names; 'data_state' vector needed for the names of the individual state data frames.
 # Additionally a clean data frame for each state as a potential backup source. 
   state <- c("SCH","HAM","NDS","BRE","NRW","HES","RHN","BAD","BAY","SAR","BER","BRA","MEC","SAC","SAA","THU")
-  clean_state <- paste( "clean_",state, sep="")
   data_state <- paste( "state_",state, sep="")
 # create data frames
   for (i in 1:16) {
     cleaned <- cleaned %>% mutate(Bundesland=replace(Bundesland, Bundesland==i, state[i]))
-    assign(paste0(clean_state[i]), cleaned[cleaned$Bundesland==state[i],])
     assign(paste0(data_state[i]), cleaned[cleaned$Bundesland==state[i],])
   rm(i)}
+
+# remove not needed list (short names states)
+  rm(state)
 ```
 
 ### create dynamic state datasets
@@ -617,6 +618,8 @@ rm(i,lp_matching,mandate.value,max_pro_wahlkreis,max_seats,n_parteien,n_wahlkrei
 
 ``` r
 margins <- data.frame(wahlkreisnummer=numeric(), margin=numeric())
+mandate <- data.frame(wahlkreisnummer=numeric(), wahlkreisname=numeric(),Bundesland=character(), mandate_actual=character(), mandate_optimisation=character(), votes_needed=numeric(),votes_halved=numeric())
+
 
 for (i in 1:16) {
  
@@ -657,15 +660,16 @@ for (i in 1:16) {
 
   
 # margins between first and second as dataframe for graph  
-  clean_up <- clean_up %>%
-                 mutate(margin=0) %>%
-                 mutate(margin=replace(margin, second_party == "CDU", CDU),
-                         margin=replace(margin, second_party == "SPD", SPD),
-                         margin=replace(margin, second_party == "LINKE", LINKE),
-                         margin=replace(margin, second_party == "GRÜNE", GRÜNE),
-                         margin=replace(margin, second_party == "CSU", CSU),
-                         margin=replace(margin, second_party == "AFD", AFD),
-                         margin=replace(margin, second_party == "FDP", FDP))
+  clean_up <- clean_up  %>%
+                    mutate(margin=0) %>%
+                    mutate(margin=replace(margin,  second_party == "CDU", CDU[second_party == "CDU"]),
+                          margin=replace(margin, second_party == "SPD", SPD[second_party == "SPD"]),
+                          margin=replace(margin, second_party == "LINKE", LINKE[second_party == "LINKE"]),
+                          margin=replace(margin, second_party == "GRÜNE", GRÜNE[second_party == "GRÜNE"]),
+                          margin=replace(margin, second_party == "CSU", CSU[second_party == "CSU"]),
+                          margin=replace(margin, second_party == "AFD", AFD[second_party == "AFD"]),
+                          margin=replace(margin, second_party == "FDP", FDP[second_party == "FDP"])) %>%
+                    as.data.frame()
 
   margins_placeholder <- clean_up %>% select(wahlkreisnummer,margin)
   margins <- rbind(margins,margins_placeholder)
@@ -673,26 +677,25 @@ for (i in 1:16) {
 #  divide by two as half amount would already amount to swing
   clean_up <- clean_up %>% mutate(votes_halved= ceiling(votes_needed/2))
 
-# save to data frame  
-  assign(paste0(data_state[i]), clean_up,)    
+# only keep variables needed
+  clean_up <- clean_up %>% select(-c(1,5:19,23)) %>% relocate(any_of(c("wahlkreisnummer" ,"wahlkreisname","Bundesland", "mandate_actual", "mandate_optimisation", "votes_needed","votes_halved")))
+   
 
+# merge with data frame for analysis
+  mandate <- rbind(mandate,clean_up)
 # cleanup
-  rm(loop_state,i,margins_placeholder)
+  rm(loop_state,i,margins_placeholder,clean_up)
 }
 ```
 
-# WHY 0???????????????????
+# Drop not needed data frames and values:
 
-test \<- state\_HAM
-
-test \<- state\_HAM %\>% mutate(margin=NA) %\>%
-mutate(margin=replace(margin, second\_party == “CDU” & is.na(margin),
-CDU)), margin=replace(margin, second\_party == “SPD”, SPD),
-margin=replace(margin, second\_party == “LINKE”, LINKE),
-margin=replace(margin, second\_party == “GRÜNE”, GRÜNE),
-margin=replace(margin, second\_party == “CSU”, CSU),
-margin=replace(margin, second\_party == “AFD”, AFD),
-margin=replace(margin, second\_party == “FDP”, FDP))
+``` r
+# drop data frames
+rm(list=c(data_state,dynamic_state))
+# drop values
+rm(data_state,dynamic_state,seats)
+```
 
 # Margins Graph - CHANGE LIMIT X AXIS?
 
@@ -707,8 +710,10 @@ margins %>%
                        breaks = c(seq(0.25,1,0.25)),
                        expand = c(0, 0), 
                        labels=c("0.25" = "25", "0.5"="50", "0.75"="75", "1"="100 %")) +
-      scale_x_continuous(breaks =c(2000,20000,40000,60000),
-                         labels=c("2000" = "XXXX", "20000"="20000", "40000"="40000", "60000"="60000")) +
+      scale_x_continuous(breaks =c(0,20000,40000,60000),
+                         labels=c("0"="0","20000"="20000", "40000"="40000", "60000"="60000"),
+                         limits=c(0,70000),
+                         expand = c(0, 0)) +
       labs(title = "Kummulierte Anzahl an Wahlkreise nach Abstand Erst- und Zweitstimme", subtitle="X Prozent der Wahlkreis Abstand X oder kleiner",caption = "Quelle: Bundeswahlleiter") +
       hp_theme() + theme(axis.text= element_text(size=7.5), axis.title.x = element_blank(),plot.title.position = "plot",  axis.title.y = element_blank(), 
                        panel.grid.major.x = element_blank(), panel.grid.major.y = element_line(size=.2, color="#656565"), axis.line.x=element_line( size=.3, color="black"),
@@ -717,3 +722,26 @@ margins %>%
 ```
 
 ![](README_figs/margins_graph-1.png)<!-- -->
+
+# Optimizied Election Map
+
+``` r
+map_optimized_election <- mandate %>%
+          mutate(change=NA) %>%
+          mutate(change=replace(change,mandate_actual!=mandate_optimisation,mandate_optimisation)) %>%
+          mutate(id=wahlkreisnummer-1,id=as.character(id)) 
+          
+map_optimized_election<- merge(shp_wahlkreise, map_optimized_election, by="id", all.y=T)
+
+
+  ggplot(data=map_optimized_election, aes(x=long, y=lat, group=group))+
+    geom_polygon(aes(fill=change), show.legend = T) +
+    geom_polygon(data=shp_wahlkreise, aes(x=long, y=lat, group=group), fill=NA, color="black", size=0.4) +
+    scale_fill_manual(values=c("#32302e","#E3000F","white")) +
+    labs(title = "Änderungen nach Optimisierung", subtitle="",caption = "Quelle: Bundeswahlleiter") +
+    coord_map() + # apply projection
+    theme_void() +  # remove axes
+    theme()
+```
+
+![](README_figs/optimized_election_map-1.png)<!-- -->
