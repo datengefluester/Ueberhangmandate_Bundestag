@@ -646,14 +646,13 @@ rm(i,lp_matching,mandate.value,max_pro_wahlkreis,max_seats,n_parteien,n_wahlkrei
 }
 ```
 
-\#————————————-
-
 # Creating Variables
 
 ``` r
 margins <- data.frame(wahlkreisnummer=numeric(), margin=numeric())
 mandate <- data.frame(wahlkreisnummer=numeric(), wahlkreisname=numeric(),Bundesland=character(), mandate_actual=character(), mandate_optimisation=character(), votes_needed=numeric(),votes_halved=numeric())
 
+ueberhang_mandates <- data.frame(partei=character(),ueberhang_mandates=numeric(),Bundesland=character())
 
 for (i in 1:16) {
  
@@ -710,9 +709,20 @@ for (i in 1:16) {
 
   margins_placeholder <- clean_up %>% select(wahlkreisnummer,margin)
   margins <- rbind(margins,margins_placeholder)
-    
+  
+  
+# get Ueberhangmandates  
+  
+  ueberhang_placerholder <- clean_up %>% group_by(mandate_actual,Bundesland) %>% tally() %>% rename("partei"="mandate_actual",
+                                                                        "direct_mandates"="n")
+  state <- clean_up$Bundesland[1]
 
-
+  ueberhang_placerholder <- left_join(state_THU_dynamic,ueberhang_placerholder) %>% mutate(ueberhang_mandates=direct_mandates-mandate,Bundesland=state) %>% 
+                                                      select(1,6:9)  
+  
+  ueberhang_mandates <- rbind(ueberhang_mandates,ueberhang_placerholder)
+  
+  
 # only keep variables needed
   clean_up <- clean_up %>% select(-c(1,5:19,24)) %>% relocate(any_of(c("wahlkreisnummer" ,"wahlkreisname","Bundesland", "mandate_actual", "mandate_optimisation", "votes_needed","votes_halved")))
 
@@ -721,7 +731,8 @@ for (i in 1:16) {
 # merge with data frame for analysis
   mandate <- rbind(mandate,clean_up)
 # cleanup
-  rm(loop_state,i,margins_placeholder,clean_up)
+  rm(loop_state,i,margins_placeholder,clean_up,ueberhang_placerholder,state)  
+
 }
 ```
 
@@ -731,50 +742,57 @@ for (i in 1:16) {
 mandate %>% 
     group_by(mandate_actual) %>%
     tally() %>%
+    rename("Anzahl"="n",
+           "Direktmandate"="mandate_actual")%>%
     kable() 
 ```
 
-| mandate\_actual |   n |
-| :-------------- | --: |
-| AFD             |   3 |
-| CDU             | 185 |
-| CSU             |  46 |
-| GRÜNE           |   1 |
-| LINKE           |   5 |
-| SPD             |  59 |
+| Direktmandate | Anzahl |
+| :------------ | -----: |
+| AFD           |      3 |
+| CDU           |    185 |
+| CSU           |     46 |
+| GRÜNE         |      1 |
+| LINKE         |      5 |
+| SPD           |     59 |
 
 ``` r
 mandate %>% 
     group_by(mandate_optimisation) %>%
     tally() %>%
+    rename("Anzahl"="n",
+           "optimierte Direktmandate"="mandate_optimisation")%>%
     kable() 
 ```
 
-| mandate\_optimisation |   n |
-| :-------------------- | --: |
-| AFD                   |  14 |
-| CDU                   | 152 |
-| CSU                   |  39 |
-| GRÜNE                 |   3 |
-| LINKE                 |   6 |
-| SPD                   |  85 |
+| optimierte Direktmandate | Anzahl |
+| :----------------------- | -----: |
+| AFD                      |     14 |
+| CDU                      |    152 |
+| CSU                      |     39 |
+| GRÜNE                    |      3 |
+| LINKE                    |      6 |
+| SPD                      |     85 |
 
 ``` r
 mandate %>% 
     filter(mandate_actual!=mandate_optimisation) %>%
     group_by(mandate_actual,mandate_optimisation) %>%
     tally() %>%
+    rename("Anzahl"="n",
+           "Direktmandate von"="mandate_actual",
+           "nach"="mandate_optimisation")%>%
     kable() 
 ```
 
-| mandate\_actual | mandate\_optimisation |  n |
-| :-------------- | :-------------------- | -: |
-| CDU             | AFD                   | 11 |
-| CDU             | GRÜNE                 |  2 |
-| CDU             | LINKE                 |  1 |
-| CDU             | SPD                   | 22 |
-| CSU             | SPD                   |  7 |
-| SPD             | CDU                   |  3 |
+| Direktmandate von | nach  | Anzahl |
+| :---------------- | :---- | -----: |
+| CDU               | AFD   |     11 |
+| CDU               | GRÜNE |      2 |
+| CDU               | LINKE |      1 |
+| CDU               | SPD   |     22 |
+| CSU               | SPD   |      7 |
+| SPD               | CDU   |      3 |
 
 # Drop not needed data frames and values:
 
@@ -862,30 +880,16 @@ ueberhang <- mandate %>%
     ## 6 LINKE                    59
 
 ``` r
-# get mandates from Erststimmen per party
-  mandate_erststimmen <-mandate  %>% 
-            count(mandate_actual) %>% 
-            rename("partei" = "mandate_actual",
-                    "mandate_erststimmen"="n") %>%
-            mutate(partei=replace(partei, partei=="Christlich Demokratische Union Deutschlands Erststimmen", "CDU"),
-                  partei=replace(partei, partei=="Sozialdemokratische partei Deutschlands Erststimmen", "SPD"),
-                  partei=replace(partei, partei=="DIE LINKE Erststimmen", "LINKE"),
-                  partei=replace(partei, partei=="BÜNDNIS 90/DIE GRÜNEN Erststimmen", "GRÜNE"),
-                  partei=replace(partei, partei=="Christlich-Soziale Union in Bayern e.V. Erststimmen", "CSU"),
-                  partei=replace(partei, partei=="Freie Demokratische partei Erststimmen", "FDP"),
-                  partei=replace(partei, partei=="Alternative für Deutschland Erststimmen", "AFD"))
-          
-# merge
-  partei_mandate <- left_join(partei_mandate,mandate_erststimmen) %>% mutate(mandate_erststimmen=replace(mandate_erststimmen,is.na(mandate_erststimmen),0))
+# get ueberhangmandate
+ueberhang_parties <- ueberhang %>% group_by(mandate_actual) %>% tally() %>% rename(partei=mandate_actual,ueberhang_mandate=n)
+partei_mandate <- left_join(partei_mandate,ueberhang_parties) %>% mutate(ueberhang_mandate=replace(ueberhang_mandate,is.na(ueberhang_mandate),0))         
+rm(ueberhang_parties)
 
-# remove merge data frame
-  rm(mandate_erststimmen)
+# minimum amount of seats in parliament
+ partei_mandate <- partei_mandate %>% mutate(mandate_minimum=mandate_zweitstimmen+ueberhang_mandate)
 
-# higher of the two is the minimum amount of seats in parliament
- partei_mandate <- partei_mandate %>% mutate(mandate_minimum=pmax(mandate_erststimmen,mandate_zweitstimmen, na.rm=TRUE))
- 
 # minus 0.5
- partei_mandate <- partei_mandate %>% mutate(mandate_minimum_05=mandate_minimum-0.5)
+ partei_mandate <- partei_mandate %>% mutate(mandate_minus_05=mandate_minimum-0.5)
   
 # get votes per party country wide
 zweitstimmen <- cleaned %>% 
@@ -905,31 +909,44 @@ partei_mandate <- left_join(partei_mandate,zweitstimmen)
 rm(zweitstimmen) 
 
 # Get divisor by party: Zweitstimmen divided by minimum - 0.5
- partei_mandate <- partei_mandate %>% mutate(divisor=zweitstimmen/mandate_minimum_05)
+ partei_mandate <- partei_mandate %>% mutate(party_divisor_1=zweitstimmen/mandate_minus_05)
 
-# get minimum divisor for parties (but it's effectively the maximum divisor, hence the name)
-  partei_mandate <- partei_mandate %>% mutate(max_divisor=min(divisor))
+# get minimum divisor for parties (but it's effectively the maximum divisor as it maximizes size of the parliament, hence the name)
+  partei_mandate <- partei_mandate %>% mutate(max_divisor=min(party_divisor_1))
 
 # new mandates    
    partei_mandate <- partei_mandate %>% mutate(new_mandates=round(zweitstimmen/max_divisor))
 
 # get new divisor (+0.5)
-   partei_mandate <- partei_mandate %>% mutate(min_divisor=round(zweitstimmen/max_divisor))
+   partei_mandate <- partei_mandate %>% mutate(mandate_plus_05=new_mandates+0.5)
+
+# min divisor 
+   partei_mandate <- partei_mandate %>% mutate(party_divisor_2=zweitstimmen/mandate_plus_05) 
+      
+# max from previous step
+   partei_mandate <- partei_mandate %>% mutate(min_divisor=max(party_divisor_2))
    
 head(partei_mandate)   
 ```
 
-    ## # A tibble: 6 x 10
-    ##   partei mandate_zweitst… mandate_erststi… mandate_minimum mandate_minimum…
+    ## # A tibble: 6 x 12
+    ##   partei mandate_zweitst… ueberhang_manda… mandate_minimum mandate_minus_05
     ##   <chr>             <dbl>            <dbl>           <dbl>            <dbl>
-    ## 1 AFD                  83                3              83             82.5
-    ## 2 CDU                 164              185             185            184. 
-    ## 3 CSU                  39               46              46             45.5
+    ## 1 AFD                  83                0              83             82.5
+    ## 2 CDU                 164               36             200            200. 
+    ## 3 CSU                  39                7              46             45.5
     ## 4 FDP                  65                0              65             64.5
-    ## 5 GRÜNE                57                1              57             56.5
-    ## 6 LINKE                59                5              59             58.5
-    ## # … with 5 more variables: zweitstimmen <dbl>, divisor <dbl>,
-    ## #   max_divisor <dbl>, new_mandates <dbl>, min_divisor <dbl>
+    ## 5 GRÜNE                57                0              57             56.5
+    ## 6 LINKE                59                0              59             58.5
+    ## # … with 7 more variables: zweitstimmen <dbl>, party_divisor_1 <dbl>,
+    ## #   max_divisor <dbl>, new_mandates <dbl>, mandate_plus_05 <dbl>,
+    ## #   party_divisor_2 <dbl>, min_divisor <dbl>
+
+``` r
+sum(partei_mandate$new_mandates)
+```
+
+    ## [1] 709
 
 # Things to look at:
 
