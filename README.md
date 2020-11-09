@@ -254,17 +254,18 @@ nrow(cleaned)
   map_actual_election %>%
             group_by(Partei) %>%
             tally() %>%
+            rename("Direktmandate"="n") %>%
             kable() 
 ```
 
-| Partei |   n |
-| :----- | --: |
-| AFD    |   3 |
-| CDU    | 185 |
-| CSU    |  46 |
-| GRÜNE  |   1 |
-| LINKE  |   5 |
-| SPD    |  59 |
+| Partei | Direktmandate |
+| :----- | ------------: |
+| AFD    |             3 |
+| CDU    |           185 |
+| CSU    |            46 |
+| GRÜNE  |             1 |
+| LINKE  |             5 |
+| SPD    |            59 |
 
 Add shape files
 
@@ -455,48 +456,41 @@ slower. If you have time to spare, feel free to modify the code.
 ``` r
 # double check: whether mandates by party add up to numbers from Bundeswahlleiter:
 # get all mandates per party from each state
-  test2 <- state_SCH_dynamic %>% select(partei,mandate)
+  partei_mandate <- state_SCH_dynamic %>% select(partei,mandate)
   for (i in 2:16) {
     loop_state <- get(dynamic_state[i])
     loop_state <- loop_state %>% select(partei,mandate)
-    test2 <- rbind(test2,loop_state)
+    partei_mandate <- rbind(partei_mandate,loop_state)
   }
   # get sum and see if they add up to 598
-  sum(test2$mandate)
+  sum(partei_mandate$mandate)
 ```
 
     ## [1] 598
 
 ``` r
   # get sum of mandates for each party (this should equal final distribution)
-  test2 %>% 
+partei_mandate <-  partei_mandate %>% 
     group_by(partei) %>% 
-    summarise(mandate = sum(mandate)) %>%
-    kable() 
+    summarise(mandate_zweitstimmen = sum(mandate))
+
+partei_mandate %>% arrange(-mandate_zweitstimmen) %>%rename("Partei"=partei,
+                          "Mandate nach Zweitstimmen"=mandate_zweitstimmen) %>% kable() 
 ```
 
-| partei | mandate |
-| :----- | ------: |
-| AFD    |      83 |
-| CDU    |     164 |
-| CSU    |      39 |
-| FDP    |      65 |
-| GRÜNE  |      57 |
-| LINKE  |      59 |
-| SPD    |     131 |
-
-``` r
-# cleanup
-  rm(test2)
-```
+| Partei | Mandate nach Zweitstimmen |
+| :----- | ------------------------: |
+| CDU    |                       164 |
+| SPD    |                       131 |
+| AFD    |                        83 |
+| FDP    |                        65 |
+| LINKE  |                        59 |
+| GRÜNE  |                        57 |
+| CSU    |                        39 |
 
 # Optimal Allocation preparation
 
 ``` r
-checkup_nrw <- state_NRW[,!grepl("Zweitstimme",names(state_NRW))]
-checkup_nrw <- checkup_nrw %>% 
-                  select(c(1:3,8:14))
-
 for (i in 1:16) {
 
 # change loop data set for easy coding  
@@ -627,7 +621,7 @@ loop_state <- get(dynamic_state[i])
   solve(lp_matching)
   get.variables(lp_matching)  
   
-# 11. create dataset (ncol=7  as seven parties in parliament)
+# create dataset (ncol=7  as seven parties in parliament)
   calculation <- get.variables(lp_matching) %>% 
                   matrix(ncol=7)  %>%
                   as.data.frame() %>%
@@ -808,7 +802,7 @@ margins %>%
                          labels=c("0"="0","20000"="20000", "40000"="40000", "60000"="60000"),
                          limits=c(0,70000),
                          expand = c(0, 0)) +
-      labs(title = "Kummulierte Anzahl an Wahlkreise nach Abstand Erst- und Zweitstimme", subtitle="X Prozent der Wahlkreis Abstand X oder kleiner",caption = "Quelle: Bundeswahlleiter") +
+      labs(title = "Kummulierte Anzahl an Wahlkreise nach Abstand Erst- und Zweitstimme", subtitle="Prozent der Wahlkreis mit Abstand X oder kleiner",caption = "Quelle: Bundeswahlleiter") +
       hp_theme() + theme(axis.text= element_text(size=7.5), axis.title.x = element_blank(),plot.title.position = "plot",  axis.title.y = element_blank(), 
                        panel.grid.major.x = element_blank(), panel.grid.major.y = element_line(size=.2, color="#656565"), axis.line.x=element_line( size=.3, color="black"),
                        legend.position = "right", legend.key = element_blank(), axis.ticks.y = element_blank(), axis.ticks.x =element_line( size=.3, color="black"),
@@ -845,5 +839,99 @@ map_optimized_election<- merge(shp_wahlkreise, map_optimized_election, by="id", 
 ``` r
 ueberhang <- mandate %>% 
     filter(mandate_actual!=mandate_optimisation) %>%
-    arrange(votes_needed)
+    arrange(votes_needed) %>%
+    mutate(rank=1:n())
 ```
+
+# Dynamic State Level Data Frame ADD THE MERGING IN PIPE
+
+``` r
+# recreate table: https://de.wikipedia.org/wiki/Sitzzuteilungsverfahren_nach_der_Wahl_zum_Deutschen_Bundestag#2._Stufe
+# recall we already calculated Zweitstimmen earlier as a checkup if mandates add up to 598
+  head(partei_mandate)
+```
+
+    ## # A tibble: 6 x 2
+    ##   partei mandate_zweitstimmen
+    ##   <chr>                 <dbl>
+    ## 1 AFD                      83
+    ## 2 CDU                     164
+    ## 3 CSU                      39
+    ## 4 FDP                      65
+    ## 5 GRÜNE                    57
+    ## 6 LINKE                    59
+
+``` r
+# get mandates from Erststimmen per party
+  mandate_erststimmen <-mandate  %>% 
+            count(mandate_actual) %>% 
+            rename("partei" = "mandate_actual",
+                    "mandate_erststimmen"="n") %>%
+            mutate(partei=replace(partei, partei=="Christlich Demokratische Union Deutschlands Erststimmen", "CDU"),
+                  partei=replace(partei, partei=="Sozialdemokratische partei Deutschlands Erststimmen", "SPD"),
+                  partei=replace(partei, partei=="DIE LINKE Erststimmen", "LINKE"),
+                  partei=replace(partei, partei=="BÜNDNIS 90/DIE GRÜNEN Erststimmen", "GRÜNE"),
+                  partei=replace(partei, partei=="Christlich-Soziale Union in Bayern e.V. Erststimmen", "CSU"),
+                  partei=replace(partei, partei=="Freie Demokratische partei Erststimmen", "FDP"),
+                  partei=replace(partei, partei=="Alternative für Deutschland Erststimmen", "AFD"))
+          
+# merge
+  partei_mandate <- left_join(partei_mandate,mandate_erststimmen) %>% mutate(mandate_erststimmen=replace(mandate_erststimmen,is.na(mandate_erststimmen),0))
+
+# remove merge data frame
+  rm(mandate_erststimmen)
+
+# higher of the two is the minimum amount of seats in parliament
+ partei_mandate <- partei_mandate %>% mutate(mandate_minimum=pmax(mandate_erststimmen,mandate_zweitstimmen, na.rm=TRUE))
+ 
+# minus 0.5
+ partei_mandate <- partei_mandate %>% mutate(mandate_minimum_05=mandate_minimum-0.5)
+  
+# get votes per party country wide
+zweitstimmen <- cleaned %>% 
+  select(seq(13,25,2)) %>% 
+  pivot_longer(c(1:7),names_to = "partei", values_to = "zweitstimmen") %>%
+  group_by(partei) %>%
+  summarise(zweitstimmen = sum(zweitstimmen,na.rm=TRUE)) %>%
+  mutate(partei=replace(partei, partei=="Christlich Demokratische Union Deutschlands Zweitstimmen", "CDU"),
+         partei=replace(partei, partei=="Sozialdemokratische Partei Deutschlands Zweitstimmen", "SPD"),
+         partei=replace(partei, partei=="DIE LINKE Zweitstimmen", "LINKE"),
+         partei=replace(partei, partei=="BÜNDNIS 90/DIE GRÜNEN Zweitstimmen", "GRÜNE"),
+         partei=replace(partei, partei=="Christlich-Soziale Union in Bayern e.V. Zweitstimmen", "CSU"),
+         partei=replace(partei, partei=="Freie Demokratische Partei Zweitstimmen", "FDP"),
+         partei=replace(partei, partei=="Alternative für Deutschland Zweitstimmen", "AFD"))
+# merge
+partei_mandate <- left_join(partei_mandate,zweitstimmen) 
+rm(zweitstimmen) 
+
+# Get divisor by party: Zweitstimmen divided by minimum - 0.5
+ partei_mandate <- partei_mandate %>% mutate(divisor=zweitstimmen/mandate_minimum_05)
+
+# get minimum divisor for parties (but it's effectively the maximum divisor, hence the name)
+  partei_mandate <- partei_mandate %>% mutate(max_divisor=min(divisor))
+
+# new mandates    
+   partei_mandate <- partei_mandate %>% mutate(new_mandates=round(zweitstimmen/max_divisor))
+
+# get new divisor (+0.5)
+   partei_mandate <- partei_mandate %>% mutate(min_divisor=round(zweitstimmen/max_divisor))
+   
+head(partei_mandate)   
+```
+
+    ## # A tibble: 6 x 10
+    ##   partei mandate_zweitst… mandate_erststi… mandate_minimum mandate_minimum…
+    ##   <chr>             <dbl>            <dbl>           <dbl>            <dbl>
+    ## 1 AFD                  83                3              83             82.5
+    ## 2 CDU                 164              185             185            184. 
+    ## 3 CSU                  39               46              46             45.5
+    ## 4 FDP                  65                0              65             64.5
+    ## 5 GRÜNE                57                1              57             56.5
+    ## 6 LINKE                59                5              59             58.5
+    ## # … with 5 more variables: zweitstimmen <dbl>, divisor <dbl>,
+    ## #   max_divisor <dbl>, new_mandates <dbl>, min_divisor <dbl>
+
+# Things to look at:
+
+maybe makes some parts prettier:
+<https://www.infoworld.com/article/3454356/how-to-merge-data-in-r-using-r-merge-dplyr-or-datatable.html>
