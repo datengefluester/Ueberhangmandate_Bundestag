@@ -175,7 +175,7 @@ ggsave("./HP_pic/historic_size_graph.jpg",width=4, height=3)
 ``` r
 # get data
   raw <- read.csv("https://www.bundeswahlleiter.de/dam/jcr/72f186bb-aa56-47d3-b24c-6a46f5de22d0/btw17_kerg.csv", header=F, sep=";", skip=1, stringsAsFactors = F, na.strings="")
-  cleaned <- raw
+  
 # keep raw data as backup
   write.csv(raw,"raw.csv", row.names = TRUE)
 ```
@@ -183,6 +183,8 @@ ggsave("./HP_pic/historic_size_graph.jpg",width=4, height=3)
 ### clean up raw data
 
 ``` r
+  cleaned <- raw
+
 # For now there are not really proper column names. So I obtain party names for columns and have all names in row 6 so I can name variables in one line.
 # paste party names in front of second vote ("Zweitstimme"); logic: if cell contains "Zweitstimme" grab party name from row 5, 2 cells to the left and paste it in front
 # similar logic for 'Erststimme'. 
@@ -246,7 +248,23 @@ nrow(cleaned)
           Partei=replace(Partei, is.numeric(Partei), "Andere")) %>%
     select(starts_with("wahlkreis") | contains("Partei")) %>%
     mutate(id=wahlkreisnummer-1,id=as.character(id))
+
+# check if results like actual election results:
+# https://de.wikipedia.org/wiki/Bundestagswahl_2017#Endg%C3%BCltiges_Gesamtergebnis
+  map_actual_election %>%
+            group_by(Partei) %>%
+            tally() %>%
+            kable() 
 ```
+
+| Partei |   n |
+| :----- | --: |
+| AFD    |   3 |
+| CDU    | 185 |
+| CSU    |  46 |
+| GRÜNE  |   1 |
+| LINKE  |   5 |
+| SPD    |  59 |
 
 Add shape files
 
@@ -416,7 +434,22 @@ slower. If you have time to spare, feel free to modify the code.
     ## [1] TRUE
 
 ``` r
-  rm(test)
+# check if seats assigned to party in state NRW (most populous) equal:
+# source: https://www.bundeswahlleiter.de/dam/jcr/dd81856b-7711-4d9f-98dd-91631ddbc37f/btw17_sitzberechnung.pdf
+# (p.6)  
+  nrw <- data.frame(partei=c("CDU","SPD","LINKE","GRÜNE","CSU","FDP","AFD"),
+                      mandate=c(43,35,10,10,0,17,13))
+
+ state_NRW_dynamic %>% 
+                  select(1,6) %>%
+                        all.equal(nrw)
+```
+
+    ## [1] TRUE
+
+``` r
+# clean up
+  rm(nrw,test)                 
 ```
 
 ``` r
@@ -435,7 +468,7 @@ slower. If you have time to spare, feel free to modify the code.
     ## [1] 598
 
 ``` r
-  # get sum of mandates for each party (just cause it's interesting)
+  # get sum of mandates for each party (this should equal final distribution)
   test2 %>% 
     group_by(partei) %>% 
     summarise(mandate = sum(mandate)) %>%
@@ -460,6 +493,10 @@ slower. If you have time to spare, feel free to modify the code.
 # Optimal Allocation preparation
 
 ``` r
+checkup_nrw <- state_NRW[,!grepl("Zweitstimme",names(state_NRW))]
+checkup_nrw <- checkup_nrw %>% 
+                  select(c(1:3,8:14))
+
 for (i in 1:16) {
 
 # change loop data set for easy coding  
@@ -471,6 +508,7 @@ for (i in 1:16) {
   loop_state <- loop_state[,!grepl("Zweitstimme",names(loop_state))]
   
 # only keep parties represented in the parliament as only mandates for these parties will decrease the overall size
+# Additionally, rename them for easier readability. 
   loop_state <-  loop_state %>% 
                   select(c(1:3,8:14)) %>% 
                   rename(  CDU = `Christlich Demokratische Union Deutschlands Erststimmen`,
@@ -510,7 +548,7 @@ for (i in 1:16) {
   loop_state <- loop_state %>% 
                     mutate(wahlkreisnummer=as.numeric(wahlkreisnummer)) %>% 
                     arrange(wahlkreisnummer) %>%
-                    mutate(matching=1:nrow(loop_state)) %>%
+                    mutate(matching=1:nrow(loop_state)) %>% 
                     select(-c(max))
    
 
@@ -610,9 +648,11 @@ loop_state <- get(dynamic_state[i])
   assign(paste0(data_state[i]), calculation,)  
   
 # clean up
-rm(i,lp_matching,mandate.value,max_pro_wahlkreis,max_seats,n_parteien,n_wahlkreise,ncol,Add_max_sitze_constraint,Add_Max_wahlkreis_constraint,calculation)
+rm(i,lp_matching,mandate.value,max_pro_wahlkreis,max_seats,n_parteien,n_wahlkreise,ncol,Add_max_sitze_constraint,Add_Max_wahlkreis_constraint,calculation,loop_state)
 }
 ```
+
+\#————————————-
 
 # Creating Variables
 
@@ -635,7 +675,7 @@ for (i in 1:16) {
                         mandate_optimisation=replace(mandate_optimisation, AFD_county == 1, "AFD"))
     
     
-# get actual direkt Mandate Party name for each Wahlkreis (logic: normal winner = 0)
+# get actual direct Mandate Party name for each Wahlkreis (logic: normal winner = 0)
   
   clean_up <- clean_up %>%
                 mutate(mandate_actual="CDU") %>%
@@ -647,19 +687,22 @@ for (i in 1:16) {
                       mandate_actual=replace(mandate_actual, AFD==0, "AFD"))
           
   
-# voter change needed for optimisation  
+# voter change needed for optimization  
   clean_up <- clean_up %>%
                  mutate(votes_needed=0) %>%
-                 mutate(votes_needed=replace(votes_needed, CDU_county == 1, CDU),
-                         votes_needed=replace(votes_needed, SPD_county == 1, SPD),
-                         votes_needed=replace(votes_needed, LINKE_county == 1, LINKE),
-                         votes_needed=replace(votes_needed, GRÜNE_county == 1, GRÜNE),
-                         votes_needed=replace(votes_needed, CSU_county == 1, CSU),
-                         votes_needed=replace(votes_needed, AFD_county == 1, AFD),
-                         votes_needed=replace(votes_needed, FDP_county == 1, FDP)) 
+                 mutate(votes_needed=replace(votes_needed, CDU_county == 1, CDU[CDU_county == 1]),
+                         votes_needed=replace(votes_needed, SPD_county == 1, SPD[SPD_county == 1]),
+                         votes_needed=replace(votes_needed, LINKE_county == 1, LINKE[LINKE_county == 1]),
+                         votes_needed=replace(votes_needed, GRÜNE_county == 1, GRÜNE[GRÜNE_county == 1]),
+                         votes_needed=replace(votes_needed, CSU_county == 1, CSU[CSU_county == 1]),
+                         votes_needed=replace(votes_needed, AFD_county == 1, AFD[AFD_county == 1]),
+                         votes_needed=replace(votes_needed, FDP_county == 1, FDP[FDP_county == 1]))  %>%
+                    as.data.frame()
 
+#  divide by two as half amount would already amount to flip county
+  clean_up <- clean_up %>% mutate(votes_halved= ceiling(votes_needed/2))
   
-# margins between first and second as dataframe for graph  
+# margins between first and second as data frame for graph (not optimized!!!)  
   clean_up <- clean_up  %>%
                     mutate(margin=0) %>%
                     mutate(margin=replace(margin,  second_party == "CDU", CDU[second_party == "CDU"]),
@@ -674,19 +717,70 @@ for (i in 1:16) {
   margins_placeholder <- clean_up %>% select(wahlkreisnummer,margin)
   margins <- rbind(margins,margins_placeholder)
     
-#  divide by two as half amount would already amount to swing
-  clean_up <- clean_up %>% mutate(votes_halved= ceiling(votes_needed/2))
+
 
 # only keep variables needed
-  clean_up <- clean_up %>% select(-c(1,5:19,23)) %>% relocate(any_of(c("wahlkreisnummer" ,"wahlkreisname","Bundesland", "mandate_actual", "mandate_optimisation", "votes_needed","votes_halved")))
-   
+  clean_up <- clean_up %>% select(-c(1,5:19,24)) %>% relocate(any_of(c("wahlkreisnummer" ,"wahlkreisname","Bundesland", "mandate_actual", "mandate_optimisation", "votes_needed","votes_halved")))
 
+  
+  
 # merge with data frame for analysis
   mandate <- rbind(mandate,clean_up)
 # cleanup
   rm(loop_state,i,margins_placeholder,clean_up)
 }
 ```
+
+# check ups
+
+``` r
+mandate %>% 
+    group_by(mandate_actual) %>%
+    tally() %>%
+    kable() 
+```
+
+| mandate\_actual |   n |
+| :-------------- | --: |
+| AFD             |   3 |
+| CDU             | 185 |
+| CSU             |  46 |
+| GRÜNE           |   1 |
+| LINKE           |   5 |
+| SPD             |  59 |
+
+``` r
+mandate %>% 
+    group_by(mandate_optimisation) %>%
+    tally() %>%
+    kable() 
+```
+
+| mandate\_optimisation |   n |
+| :-------------------- | --: |
+| AFD                   |  14 |
+| CDU                   | 152 |
+| CSU                   |  39 |
+| GRÜNE                 |   3 |
+| LINKE                 |   6 |
+| SPD                   |  85 |
+
+``` r
+mandate %>% 
+    filter(mandate_actual!=mandate_optimisation) %>%
+    group_by(mandate_actual,mandate_optimisation) %>%
+    tally() %>%
+    kable() 
+```
+
+| mandate\_actual | mandate\_optimisation |  n |
+| :-------------- | :-------------------- | -: |
+| CDU             | AFD                   | 11 |
+| CDU             | GRÜNE                 |  2 |
+| CDU             | LINKE                 |  1 |
+| CDU             | SPD                   | 22 |
+| CSU             | SPD                   |  7 |
+| SPD             | CDU                   |  3 |
 
 # Drop not needed data frames and values:
 
@@ -709,7 +803,7 @@ margins %>%
       scale_y_continuous(limits = c(0, 1.01),
                        breaks = c(seq(0.25,1,0.25)),
                        expand = c(0, 0), 
-                       labels=c("0.25" = "25", "0.5"="50", "0.75"="75", "1"="100 %")) +
+                       labels=c("0.25" = "25", "0.5"="50", "0.75"="75", "1"="100 %\n der Wahlkreise")) +
       scale_x_continuous(breaks =c(0,20000,40000,60000),
                          labels=c("0"="0","20000"="20000", "40000"="40000", "60000"="60000"),
                          limits=c(0,70000),
@@ -745,3 +839,11 @@ map_optimized_election<- merge(shp_wahlkreise, map_optimized_election, by="id", 
 ```
 
 ![](README_figs/optimized_election_map-1.png)<!-- -->
+
+# Ueberhang Data Frame
+
+``` r
+ueberhang <- mandate %>% 
+    filter(mandate_actual!=mandate_optimisation) %>%
+    arrange(votes_needed)
+```
