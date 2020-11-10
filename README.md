@@ -142,8 +142,6 @@ hp_theme <- function(base_size = 13, base_family = "") {
 
 ![](README_figs/historic_size_graph-1.png)<!-- -->
 
-,
-
 ``` r
 ggsave("./HP_pic/historic_size_graph.jpg",width=4, height=3)
 ```
@@ -332,27 +330,27 @@ parties in the parliament
 
 ``` r
 # Additionally replace numbers with names for states for easier understanding. 
-# 'state' vector for state names; 'data_state' vector needed for the names of the individual state data frames.
+# 'state' vector for state names; 'counties_state' vector needed for the names of the individual state data frames.
 # Additionally a clean data frame for each state as a potential backup source. 
   state <- c("SCH","HAM","NDS","BRE","NRW","HES","RHN","BAD","BAY","SAR","BER","BRA","MEC","SAC","SAA","THU")
-  data_state <- paste( "state_",state, sep="")
+  counties_state <- paste("counties_",state, sep="")
+  parties_state <- paste("parties_", state, sep="")
 # create data frames
   for (i in 1:16) {
     cleaned <- cleaned %>% mutate(Bundesland=replace(Bundesland, Bundesland==i, state[i]))
-    assign(paste0(data_state[i]), cleaned[cleaned$Bundesland==state[i],])
+    assign(paste0(counties_state[i]), cleaned[cleaned$Bundesland==state[i],])
   rm(i)}
 
 # remove not needed list (short names states)
   rm(state)
 ```
 
-### create dynamic state datasets
+### create party state datasets
 
 this is needed for the calculation of the amount of ‘Überhangmandaten’
 and seats per party from a given state
 
 ``` r
-dynamic_state <- paste(data_state, "_dynamic", sep="")
 for (i in 1:16) {
 # create loop dummy datasets so coding gets easier
   loop <-  data.frame(partei =c("CDU","SPD","LINKE","GRÜNE","CSU","FDP","AFD"),
@@ -360,7 +358,7 @@ for (i in 1:16) {
 # Sitzkontingent state
   loop$Sitzkontingent <- seats[i]
 # select state data frame
-  loop_state <- get(data_state[i])
+  loop_state <- get(counties_state[i])
 # sum Zweitstimmen (second vote)
   loop <- loop %>% mutate(sum_zweitstimmen=sum(loop_state$`Gültige Zweitstimmen`))
 # divisor: votes per seat
@@ -375,7 +373,7 @@ for (i in 1:16) {
                           zweitstimmen=replace(zweitstimmen, partei=="FDP", sum(loop_state$`Freie Demokratische Partei Zweitstimmen`, na.rm = TRUE)),                     
                           zweitstimmen=replace(zweitstimmen, partei=="AFD", sum(loop_state$`Alternative für Deutschland Zweitstimmen`, na.rm = TRUE)))
 # save to data frame  
-  assign(paste0(dynamic_state[i]), loop,)
+  assign(paste0(parties_state[i]), loop,)
 # remove not needed values
   rm(loop,loop_state,i)
   }
@@ -393,7 +391,7 @@ slower. If you have time to spare, feel free to modify the code.
   test <- c()
   for (i in 1:16) {
 # create loop dummy datasets so coding gets easier
-  loop_state <- get(dynamic_state[i])
+  loop_state <- get(parties_state[i])
 # votes to mandates per party
   loop_state <- loop_state %>% mutate(mandate=round(zweitstimmen/divisor))
 # sum mandates
@@ -417,7 +415,7 @@ slower. If you have time to spare, feel free to modify the code.
   test[i] <- sum(loop_state$mandate)
 
 # save to data frame  
-  assign(paste0(dynamic_state[i]), loop_state,)
+  assign(paste0(parties_state[i]), loop_state,)
 # clean up  
   rm(loop_state,number,allocated_seats,i)
   
@@ -441,7 +439,7 @@ slower. If you have time to spare, feel free to modify the code.
   nrw <- data.frame(partei=c("CDU","SPD","LINKE","GRÜNE","CSU","FDP","AFD"),
                       mandate=c(43,35,10,10,0,17,13))
 
- state_NRW_dynamic %>% 
+ parties_NRW %>% 
                   select(1,6) %>%
                         all.equal(nrw)
 ```
@@ -456,25 +454,25 @@ slower. If you have time to spare, feel free to modify the code.
 ``` r
 # double check: whether mandates by party add up to numbers from Bundeswahlleiter:
 # get all mandates per party from each state
-  partei_mandate <- state_SCH_dynamic %>% select(partei,mandate)
+  party_zweitstimmen_mandate <- parties_SCH %>% select(partei,mandate)
   for (i in 2:16) {
-    loop_state <- get(dynamic_state[i])
+    loop_state <- get(parties_state[i])
     loop_state <- loop_state %>% select(partei,mandate)
-    partei_mandate <- rbind(partei_mandate,loop_state)
+    party_zweitstimmen_mandate <- rbind(party_zweitstimmen_mandate,loop_state)
   }
   # get sum and see if they add up to 598
-  sum(partei_mandate$mandate)
+  sum(party_zweitstimmen_mandate$mandate)
 ```
 
     ## [1] 598
 
 ``` r
   # get sum of mandates for each party (this should equal final distribution)
-partei_mandate <-  partei_mandate %>% 
+party_zweitstimmen_mandate <-  party_zweitstimmen_mandate %>% 
     group_by(partei) %>% 
     summarise(mandate_zweitstimmen = sum(mandate))
 
-partei_mandate %>% arrange(-mandate_zweitstimmen) %>%rename("Partei"=partei,
+party_zweitstimmen_mandate %>% arrange(-mandate_zweitstimmen) %>%rename("Partei"=partei,
                           "Mandate nach Zweitstimmen"=mandate_zweitstimmen) %>% kable() 
 ```
 
@@ -494,7 +492,7 @@ partei_mandate %>% arrange(-mandate_zweitstimmen) %>%rename("Partei"=partei,
 for (i in 1:16) {
 
 # change loop data set for easy coding  
-  loop_state <- get(data_state[i])
+  loop_state <- get(counties_state[i])
 
 # drop all variables for 'Zweitstimme' (second vote), as we are only concerned with 'Erststimme' (first/direct vote) 
 # from now on so it will be easier to follow this way.
@@ -548,7 +546,7 @@ for (i in 1:16) {
 
   
 # save to data frame  
-  assign(paste0(data_state[i]), loop_state,)
+  assign(paste0(counties_state[i]), loop_state,)
 
 # cleanup
   rm(loop_state,i,x,y,max)    
@@ -566,14 +564,14 @@ entitled to according to the Zweitstimmen (second votes). 2. Each county
 ``` r
 for (i in 1:16) {
 # create loop dummy datasets so coding gets easier
-loop_state <- get(dynamic_state[i])
+loop_state <- get(parties_state[i])
 
 # 1. constrain: Zweitstimmenmandate
   max_seats <- loop_state$mandate 
 
 # keep only variables needed for calculation (difference from maximum votes per party)
 # as this is the only thing that matters for the calculation. 
-  loop_state <- get(data_state[i])
+  loop_state <- get(counties_state[i])
   calculation <- loop_state %>% 
                               select(4:10) %>% 
                               as.matrix()
@@ -639,7 +637,7 @@ loop_state <- get(dynamic_state[i])
   calculation <- merge(loop_state,calculation,by="matching")  
  
 # save to data frame  
-  assign(paste0(data_state[i]), calculation,)  
+  assign(paste0(counties_state[i]), calculation,)  
   
 # clean up
 rm(i,lp_matching,mandate.value,max_pro_wahlkreis,max_seats,n_parteien,n_wahlkreise,ncol,Add_max_sitze_constraint,Add_Max_wahlkreis_constraint,calculation,loop_state)
@@ -650,13 +648,12 @@ rm(i,lp_matching,mandate.value,max_pro_wahlkreis,max_seats,n_parteien,n_wahlkrei
 
 ``` r
 margins <- data.frame(wahlkreisnummer=numeric(), margin=numeric())
-mandate <- data.frame(wahlkreisnummer=numeric(), wahlkreisname=numeric(),Bundesland=character(), mandate_actual=character(), mandate_optimisation=character(), votes_needed=numeric(),votes_halved=numeric())
+counties <- data.frame(wahlkreisnummer=numeric(), wahlkreisname=numeric(),Bundesland=character(), mandate_actual=character(), mandate_optimisation=character(), votes_needed=numeric(),votes_halved=numeric())
 
-ueberhang_mandates <- data.frame(partei=character(),ueberhang_mandates=numeric(),Bundesland=character())
 
 for (i in 1:16) {
  
-    clean_up <- get(data_state[i])
+    clean_up <- get(counties_state[i])
 # variable indicating winner when optimised
     clean_up <- clean_up %>%
                   mutate(mandate_optimisation="CDU") %>%
@@ -711,16 +708,7 @@ for (i in 1:16) {
   margins <- rbind(margins,margins_placeholder)
   
   
-# get Ueberhangmandates  
-  
-  ueberhang_placerholder <- clean_up %>% group_by(mandate_actual,Bundesland) %>% tally() %>% rename("partei"="mandate_actual",
-                                                                        "direct_mandates"="n")
-  state <- clean_up$Bundesland[1]
 
-  ueberhang_placerholder <- left_join(state_THU_dynamic,ueberhang_placerholder) %>% mutate(ueberhang_mandates=direct_mandates-mandate,Bundesland=state) %>% 
-                                                      select(1,6:9)  
-  
-  ueberhang_mandates <- rbind(ueberhang_mandates,ueberhang_placerholder)
   
   
 # only keep variables needed
@@ -729,7 +717,7 @@ for (i in 1:16) {
   
   
 # merge with data frame for analysis
-  mandate <- rbind(mandate,clean_up)
+  counties <- rbind(counties,clean_up)
 # cleanup
   rm(loop_state,i,margins_placeholder,clean_up,ueberhang_placerholder,state)  
 
@@ -739,7 +727,7 @@ for (i in 1:16) {
 # check ups
 
 ``` r
-mandate %>% 
+counties %>% 
     group_by(mandate_actual) %>%
     tally() %>%
     rename("Anzahl"="n",
@@ -757,7 +745,7 @@ mandate %>%
 | SPD           |     59 |
 
 ``` r
-mandate %>% 
+counties %>% 
     group_by(mandate_optimisation) %>%
     tally() %>%
     rename("Anzahl"="n",
@@ -775,7 +763,7 @@ mandate %>%
 | SPD                      |     85 |
 
 ``` r
-mandate %>% 
+counties %>% 
     filter(mandate_actual!=mandate_optimisation) %>%
     group_by(mandate_actual,mandate_optimisation) %>%
     tally() %>%
@@ -798,12 +786,12 @@ mandate %>%
 
 ``` r
 # drop data frames
-rm(list=c(data_state,dynamic_state))
+rm(list=c(counties_state,parties_state))
 # drop values
-rm(data_state,dynamic_state,seats)
+rm(counties_state,parties_state,seats)
 ```
 
-# Margins Graph - CHANGE LIMIT X AXIS?
+# Margins Graph
 
 ``` r
 margins %>% 
@@ -816,11 +804,11 @@ margins %>%
                        breaks = c(seq(0.25,1,0.25)),
                        expand = c(0, 0), 
                        labels=c("0.25" = "25", "0.5"="50", "0.75"="75", "1"="100 %\n der Wahlkreise")) +
-      scale_x_continuous(breaks =c(0,20000,40000,60000),
-                         labels=c("0"="0","20000"="20000", "40000"="40000", "60000"="60000"),
+      scale_x_continuous(breaks =c(seq(0,70000,14000)),
+                         labels=c("0"="0","14000"="14", "28000"="28","42000"="42","56000"="56","70000"="70"),
                          limits=c(0,70000),
                          expand = c(0, 0)) +
-      labs(title = "Kummulierte Anzahl an Wahlkreise nach Abstand Erst- und Zweitstimme", subtitle="Prozent der Wahlkreis mit Abstand X oder kleiner",caption = "Quelle: Bundeswahlleiter") +
+      labs(title = "Abstand Erst- und Zweitwahl nach Erststimme", subtitle="Prozent der Wahlkreis mit kummulierten Abstand in 1000",caption = "Quelle: Bundeswahlleiter") +
       hp_theme() + theme(axis.text= element_text(size=7.5), axis.title.x = element_blank(),plot.title.position = "plot",  axis.title.y = element_blank(), 
                        panel.grid.major.x = element_blank(), panel.grid.major.y = element_line(size=.2, color="#656565"), axis.line.x=element_line( size=.3, color="black"),
                        legend.position = "right", legend.key = element_blank(), axis.ticks.y = element_blank(), axis.ticks.x =element_line( size=.3, color="black"),
@@ -829,10 +817,12 @@ margins %>%
 
 ![](README_figs/margins_graph-1.png)<!-- -->
 
+## Margins Graph - PROZENT
+
 # Optimizied Election Map
 
 ``` r
-map_optimized_election <- mandate %>%
+map_optimized_election <- counties %>%
           mutate(change=NA) %>%
           mutate(change=replace(change,mandate_actual!=mandate_optimisation,mandate_optimisation)) %>%
           mutate(id=wahlkreisnummer-1,id=as.character(id)) 
@@ -855,10 +845,15 @@ map_optimized_election<- merge(shp_wahlkreise, map_optimized_election, by="id", 
 # Ueberhang Data Frame
 
 ``` r
-ueberhang <- mandate %>% 
+ueberhangmandate <- counties %>% 
     filter(mandate_actual!=mandate_optimisation) %>%
     arrange(votes_needed) %>%
     mutate(rank=1:n())
+# cummulative votes
+ueberhangmandate$cummulative_votes <- 0
+  for (row in 1:nrow(ueberhangmandate)) {
+    ueberhangmandate[row,9] <- sum(ueberhangmandate$votes_needed[1:row])
+  rm(row)}
 ```
 
 # Dynamic State Level Data Frame ADD THE MERGING IN PIPE
@@ -866,7 +861,7 @@ ueberhang <- mandate %>%
 ``` r
 # recreate table: https://de.wikipedia.org/wiki/Sitzzuteilungsverfahren_nach_der_Wahl_zum_Deutschen_Bundestag#2._Stufe
 # recall we already calculated Zweitstimmen earlier as a checkup if mandates add up to 598
-  head(partei_mandate)
+  head(party_zweitstimmen_mandate)
 ```
 
     ## # A tibble: 6 x 2
@@ -881,15 +876,15 @@ ueberhang <- mandate %>%
 
 ``` r
 # get ueberhangmandate
-ueberhang_parties <- ueberhang %>% group_by(mandate_actual) %>% tally() %>% rename(partei=mandate_actual,ueberhang_mandate=n)
-partei_mandate <- left_join(partei_mandate,ueberhang_parties) %>% mutate(ueberhang_mandate=replace(ueberhang_mandate,is.na(ueberhang_mandate),0))         
+ueberhang_parties <- ueberhangmandate %>% group_by(mandate_actual) %>% tally() %>% rename(partei=mandate_actual,ueberhang_mandate=n)
+party_zweitstimmen_mandate <- left_join(party_zweitstimmen_mandate,ueberhang_parties) %>% mutate(ueberhang_mandate=replace(ueberhang_mandate,is.na(ueberhang_mandate),0))         
 rm(ueberhang_parties)
 
 # minimum amount of seats in parliament
- partei_mandate <- partei_mandate %>% mutate(mandate_minimum=mandate_zweitstimmen+ueberhang_mandate)
+ party_zweitstimmen_mandate <- party_zweitstimmen_mandate %>% mutate(mandate_minimum=mandate_zweitstimmen+ueberhang_mandate)
 
 # minus 0.5
- partei_mandate <- partei_mandate %>% mutate(mandate_minus_05=mandate_minimum-0.5)
+ party_zweitstimmen_mandate <- party_zweitstimmen_mandate %>% mutate(mandate_minus_05=mandate_minimum-0.5)
   
 # get votes per party country wide
 zweitstimmen <- cleaned %>% 
@@ -905,48 +900,136 @@ zweitstimmen <- cleaned %>%
          partei=replace(partei, partei=="Freie Demokratische Partei Zweitstimmen", "FDP"),
          partei=replace(partei, partei=="Alternative für Deutschland Zweitstimmen", "AFD"))
 # merge
-partei_mandate <- left_join(partei_mandate,zweitstimmen) 
+party_zweitstimmen_mandate <- left_join(party_zweitstimmen_mandate,zweitstimmen) 
 rm(zweitstimmen) 
 
 # Get divisor by party: Zweitstimmen divided by minimum - 0.5
- partei_mandate <- partei_mandate %>% mutate(party_divisor_1=zweitstimmen/mandate_minus_05)
+ party_zweitstimmen_mandate <- party_zweitstimmen_mandate %>% mutate(party_divisor_1=zweitstimmen/mandate_minus_05)
 
 # get minimum divisor for parties (but it's effectively the maximum divisor as it maximizes size of the parliament, hence the name)
-  partei_mandate <- partei_mandate %>% mutate(max_divisor=min(party_divisor_1))
+  party_zweitstimmen_mandate <- party_zweitstimmen_mandate %>% mutate(max_divisor=min(party_divisor_1))
 
 # new mandates    
-   partei_mandate <- partei_mandate %>% mutate(new_mandates=round(zweitstimmen/max_divisor))
+   party_zweitstimmen_mandate <- party_zweitstimmen_mandate %>% mutate(new_mandates=round(zweitstimmen/max_divisor))
 
 # get new divisor (+0.5)
-   partei_mandate <- partei_mandate %>% mutate(mandate_plus_05=new_mandates+0.5)
+   party_zweitstimmen_mandate <- party_zweitstimmen_mandate %>% mutate(mandate_plus_05=new_mandates+0.5)
 
 # min divisor 
-   partei_mandate <- partei_mandate %>% mutate(party_divisor_2=zweitstimmen/mandate_plus_05) 
+   party_zweitstimmen_mandate <- party_zweitstimmen_mandate %>% mutate(party_divisor_2=zweitstimmen/mandate_plus_05) 
       
 # max from previous step
-   partei_mandate <- partei_mandate %>% mutate(min_divisor=max(party_divisor_2))
+   party_zweitstimmen_mandate <- party_zweitstimmen_mandate %>% mutate(min_divisor=max(party_divisor_2))
    
-head(partei_mandate)   
+# votes divided by new divisor
+   party_zweitstimmen_mandate <- party_zweitstimmen_mandate %>% mutate(new_mandates2=round(zweitstimmen/min_divisor))
+
+# size parliament with both divisors
+   party_zweitstimmen_mandate <- party_zweitstimmen_mandate %>% mutate(size1=sum(party_zweitstimmen_mandate$new_mandates),
+                                                size2=sum(party_zweitstimmen_mandate$new_mandates2))
+ 
+# paste size parliament into ueberhang mandate date frame                                         
+    ueberhangmandate <- ueberhangmandate %>% mutate(size1=sum(party_zweitstimmen_mandate$new_mandates),
+                                          size2=sum(party_zweitstimmen_mandate$new_mandates2))
 ```
 
-    ## # A tibble: 6 x 12
-    ##   partei mandate_zweitst… ueberhang_manda… mandate_minimum mandate_minus_05
-    ##   <chr>             <dbl>            <dbl>           <dbl>            <dbl>
-    ## 1 AFD                  83                0              83             82.5
-    ## 2 CDU                 164               36             200            200. 
-    ## 3 CSU                  39                7              46             45.5
-    ## 4 FDP                  65                0              65             64.5
-    ## 5 GRÜNE                57                0              57             56.5
-    ## 6 LINKE                59                0              59             58.5
-    ## # … with 7 more variables: zweitstimmen <dbl>, party_divisor_1 <dbl>,
-    ## #   max_divisor <dbl>, new_mandates <dbl>, mandate_plus_05 <dbl>,
-    ## #   party_divisor_2 <dbl>, min_divisor <dbl>
+# Size Parliament
 
 ``` r
-sum(partei_mandate$new_mandates)
+test_ueberhangmandate <- ueberhangmandate
+test_party_zweitstimmen_mandate <- party_zweitstimmen_mandate
+
+
+ for (row in 1:nrow(test_ueberhangmandate)) {
+# get party, from which a mandate has to be substracted
+   party_subtract <- test_ueberhangmandate$mandate_actual[row]
+# get amount of mandates per party
+   CDU <- test_party_zweitstimmen_mandate[[2,3]]
+   CSU <- test_party_zweitstimmen_mandate[[3,3]]
+   SPD <- test_party_zweitstimmen_mandate[[7,3]]
+   
+# subtract a seat from the corresponding party (note only CDU,CSU and SPD have Ueberhangmandate)
+     test_party_zweitstimmen_mandate <- test_party_zweitstimmen_mandate  %>%
+                          mutate(ueberhang_mandate=replace(ueberhang_mandate,  party_subtract == "CDU" & partei=="CDU", CDU-1),
+                                 ueberhang_mandate=replace(ueberhang_mandate,  party_subtract == "CSU" & partei=="CSU", CSU-1),
+                                 ueberhang_mandate=replace(ueberhang_mandate,  party_subtract == "SPD" & partei=="SPD", SPD-1)) %>%
+                    as.data.frame()
+     
+# minimum amount of seats in parliament
+    test_party_zweitstimmen_mandate <- test_party_zweitstimmen_mandate %>% mutate(mandate_minimum=mandate_zweitstimmen+ueberhang_mandate)
+
+# minus 0.5
+    test_party_zweitstimmen_mandate <- test_party_zweitstimmen_mandate %>% mutate(mandate_minus_05=mandate_minimum-0.5)
+    
+# Get divisor by party: Zweitstimmen divided by minimum - 0.5
+    test_party_zweitstimmen_mandate <- test_party_zweitstimmen_mandate %>% mutate(party_divisor_1=zweitstimmen/mandate_minus_05)
+
+# get minimum divisor for parties (but it's effectively the maximum divisor as it maximizes size of the parliament, hence the name)
+    test_party_zweitstimmen_mandate <- test_party_zweitstimmen_mandate %>% mutate(max_divisor=min(party_divisor_1))
+
+# new mandates    
+    test_party_zweitstimmen_mandate <- test_party_zweitstimmen_mandate %>% mutate(new_mandates=round(zweitstimmen/max_divisor))
+
+# get new divisor (+0.5)
+    test_party_zweitstimmen_mandate <- test_party_zweitstimmen_mandate %>% mutate(mandate_plus_05=new_mandates+0.5)
+
+# min divisor 
+    test_party_zweitstimmen_mandate <- test_party_zweitstimmen_mandate %>% mutate(party_divisor_2=zweitstimmen/mandate_plus_05) 
+
+# max from previous step
+    test_party_zweitstimmen_mandate <- test_party_zweitstimmen_mandate %>% mutate(min_divisor=max(party_divisor_2))
+
+# votes divided by new divisor
+    test_party_zweitstimmen_mandate <- test_party_zweitstimmen_mandate %>% mutate(new_mandates2=round(zweitstimmen/min_divisor))
+
+# size parliament with both divisors
+    test_party_zweitstimmen_mandate <- test_party_zweitstimmen_mandate %>% mutate(size1=sum(test_party_zweitstimmen_mandate$new_mandates),
+                                                                    size2=sum(test_party_zweitstimmen_mandate$new_mandates2))
+
+# paste size parliament into ueberhang mandate date frame
+     test_ueberhangmandate[[row,10]] <- test_party_zweitstimmen_mandate[[1,14]]
+     test_ueberhangmandate[[row,11]] <- test_party_zweitstimmen_mandate[[1,15]]
+   
+ }
+# add original result and drop not needed variable rank
+test_ueberhangmandate <- test_ueberhangmandate %>% 
+                            add_row(votes_needed = 0,votes_halved = 0,cummulative_votes=0,size1=709,size2=709) %>%
+                            replace(is.na(.), "Election") %>%
+                            arrange(cummulative_votes) %>%
+                            select(-c(rank))
 ```
 
-    ## [1] 709
+## Dynamic Size Bundestag Graph
+
+``` r
+# calculations for the percent of votes
+#sum(cleaned$`Gültige Erststimmen`)
+#115000/46389615
+#(115000*2)/46389615
+#(115000*3)/46389615
+#(115000*4)/46389615
+
+# as the data frame contains every Ueberhangmandat per party, I only need one observation per year
+  test_ueberhangmandate %>% 
+    select(size1,cummulative_votes) %>%
+          ggplot(aes(x=`cummulative_votes`, y=`size1`,group=1)) +
+                geom_line(aes(group=1), color="#009E73") +
+                  geom_hline(aes(yintercept=709),alpha=0.7) +
+                  scale_y_continuous(limits = c(598, 725.1),
+                       breaks = c(598,625,650,675,700,709,725), 
+                       expand = c(0, 0),
+                       labels=c("598"="598 \n (heutige Normgröße)","625"="625","650"= "650","675"="675","700"= "700","709"="709 \n (akutelle Größe)","725"= "725 Sitze")) +
+                  scale_x_continuous(breaks = sort(c(seq(0, 460000, by = 115000))),
+                       limits=c(0,460000), 
+                       labels=c("0"="0","115000"="115 \n (0,2%)","230000"="230 \n (0,5%)","345000"="345 \n (0,7%)","460000"="460 \n (1%)"))  +
+    labs(title = "Größe des Bundestages mit Ersttimmenverschiebung", subtitle="Stimmenverschiebung in 100.000. In Klammern: Prozentanteil an den gesamten Erststimmen",caption = "Quelle: Bundeswahlleiter, \n Eigene Berechnungen") +
+    hp_theme() + theme(axis.text= element_text(size=7.5), axis.title.x = element_blank(),plot.title.position = "plot",  axis.title.y = element_blank(), 
+                       panel.grid.major.x = element_blank(), panel.grid.major.y = element_line(size=.2, color="#656565"), axis.line.x=element_line( size=.3, color="black"),
+                       legend.position = "right", legend.key = element_blank(), axis.ticks.y = element_blank(), axis.ticks.x =element_line( size=.3, color="black"),
+                       plot.caption=element_text(size=5), axis.text.x=element_text(color="black"))
+```
+
+![](README_figs/dynamic_size_graph-1.png)<!-- -->
 
 # Things to look at:
 
