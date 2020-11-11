@@ -129,7 +129,7 @@ hp_theme <- function(base_size = 13, base_family = "") {
     scale_y_continuous(limits = c(300, 800.1),
                        breaks = c(300,400,500,598,700,800), 
                        expand = c(0, 0),
-                       labels=c("300" = "300", "400"="400", "500"="500", "598"="598 \n (heutige Normgröße)","700"= "700","800"="800 Sitze")) +
+                       labels=c("300" = "300", "400"="400", "500"="500", "598"="598 \n (Normgröße)","700"= "700","800"="800 Sitze")) +
     scale_x_continuous(breaks = sort(c(seq(1960, 2010, by = 10),1949,2017)),
                        limits=c(1949,2017), 
                        labels=c("1949"="1949","1960"="60","1970"="70","1980"="80","1990"="90","2000"="2000","2010"="10", "2017"="17")) +
@@ -724,6 +724,15 @@ for (i in 1:16) {
 }
 ```
 
+# Drop not needed data frames and values:
+
+``` r
+# drop data frames
+rm(list=c(counties_state,parties_state))
+# drop values
+rm(counties_state,parties_state,seats)
+```
+
 # check ups
 
 ``` r
@@ -782,15 +791,6 @@ counties %>%
 | CSU               | SPD   |      7 |
 | SPD               | CDU   |      3 |
 
-# Drop not needed data frames and values:
-
-``` r
-# drop data frames
-rm(list=c(counties_state,parties_state))
-# drop values
-rm(counties_state,parties_state,seats)
-```
-
 # Margins Graph
 
 ``` r
@@ -808,7 +808,7 @@ margins %>%
                          labels=c("0"="0","14000"="14", "28000"="28","42000"="42","56000"="56","70000"="70"),
                          limits=c(0,70000),
                          expand = c(0, 0)) +
-      labs(title = "Abstand Erst- und Zweitwahl nach Erststimme", subtitle="Prozent der Wahlkreis mit kummulierten Abstand in 1000",caption = "Quelle: Bundeswahlleiter") +
+      labs(title = "Abstand Erst- und Zweitwahl nach Erststimme", subtitle="Prozent der Wahlkreis mit kummulierten Abstand in 1000",caption = "Quelle: Bundeswahlleiter \n eigene Berechnungen") +
       hp_theme() + theme(axis.text= element_text(size=7.5), axis.title.x = element_blank(),plot.title.position = "plot",  axis.title.y = element_blank(), 
                        panel.grid.major.x = element_blank(), panel.grid.major.y = element_line(size=.2, color="#656565"), axis.line.x=element_line( size=.3, color="black"),
                        legend.position = "right", legend.key = element_blank(), axis.ticks.y = element_blank(), axis.ticks.x =element_line( size=.3, color="black"),
@@ -834,7 +834,7 @@ map_optimized_election<- merge(shp_wahlkreise, map_optimized_election, by="id", 
     geom_polygon(aes(fill=change), show.legend = T) +
     geom_polygon(data=shp_wahlkreise, aes(x=long, y=lat, group=group), fill=NA, color="black", size=0.4) +
     scale_fill_manual(values=c("#32302e","#E3000F","white")) +
-    labs(title = "Änderungen nach Optimisierung", subtitle="",caption = "Quelle: Bundeswahlleiter") +
+    labs(title = "Änderungen nach Optimisierung", subtitle="",caption = "Quelle: Bundeswahlleiter \n eigene Berechnungen") +
     coord_map() + # apply projection
     theme_void() +  # remove axes
     theme()
@@ -936,63 +936,69 @@ rm(zweitstimmen)
 # Size Parliament
 
 ``` r
-test_ueberhangmandate <- ueberhangmandate
-test_party_zweitstimmen_mandate <- party_zweitstimmen_mandate
-
-
- for (row in 1:nrow(test_ueberhangmandate)) {
+ for (row in 1:nrow(ueberhangmandate)) {
 # get party, from which a mandate has to be substracted
-   party_subtract <- test_ueberhangmandate$mandate_actual[row]
+   party_subtract <- ueberhangmandate$mandate_actual[row]
 # get amount of mandates per party
-   CDU <- test_party_zweitstimmen_mandate[[2,3]]
-   CSU <- test_party_zweitstimmen_mandate[[3,3]]
-   SPD <- test_party_zweitstimmen_mandate[[7,3]]
+   CDU <- party_zweitstimmen_mandate[[2,3]]
+   CSU <- party_zweitstimmen_mandate[[3,3]]
+   SPD <- party_zweitstimmen_mandate[[7,3]]
    
 # subtract a seat from the corresponding party (note only CDU,CSU and SPD have Ueberhangmandate)
-     test_party_zweitstimmen_mandate <- test_party_zweitstimmen_mandate  %>%
+     party_zweitstimmen_mandate <- party_zweitstimmen_mandate  %>%
                           mutate(ueberhang_mandate=replace(ueberhang_mandate,  party_subtract == "CDU" & partei=="CDU", CDU-1),
                                  ueberhang_mandate=replace(ueberhang_mandate,  party_subtract == "CSU" & partei=="CSU", CSU-1),
                                  ueberhang_mandate=replace(ueberhang_mandate,  party_subtract == "SPD" & partei=="SPD", SPD-1)) %>%
                     as.data.frame()
      
 # minimum amount of seats in parliament
-    test_party_zweitstimmen_mandate <- test_party_zweitstimmen_mandate %>% mutate(mandate_minimum=mandate_zweitstimmen+ueberhang_mandate)
+    party_zweitstimmen_mandate <- party_zweitstimmen_mandate %>% mutate(mandate_minimum=mandate_zweitstimmen+ueberhang_mandate)
 
 # minus 0.5
-    test_party_zweitstimmen_mandate <- test_party_zweitstimmen_mandate %>% mutate(mandate_minus_05=mandate_minimum-0.5)
+    party_zweitstimmen_mandate <- party_zweitstimmen_mandate %>% mutate(mandate_minus_05=mandate_minimum-0.5)
     
 # Get divisor by party: Zweitstimmen divided by minimum - 0.5
-    test_party_zweitstimmen_mandate <- test_party_zweitstimmen_mandate %>% mutate(party_divisor_1=zweitstimmen/mandate_minus_05)
+    party_zweitstimmen_mandate <- party_zweitstimmen_mandate %>% mutate(party_divisor_1=zweitstimmen/mandate_minus_05)
 
 # get minimum divisor for parties (but it's effectively the maximum divisor as it maximizes size of the parliament, hence the name)
-    test_party_zweitstimmen_mandate <- test_party_zweitstimmen_mandate %>% mutate(max_divisor=min(party_divisor_1))
+    party_zweitstimmen_mandate <- party_zweitstimmen_mandate %>% mutate(max_divisor=min(party_divisor_1))
 
 # new mandates    
-    test_party_zweitstimmen_mandate <- test_party_zweitstimmen_mandate %>% mutate(new_mandates=round(zweitstimmen/max_divisor))
+    party_zweitstimmen_mandate <- party_zweitstimmen_mandate %>% mutate(new_mandates=round(zweitstimmen/max_divisor))
 
 # get new divisor (+0.5)
-    test_party_zweitstimmen_mandate <- test_party_zweitstimmen_mandate %>% mutate(mandate_plus_05=new_mandates+0.5)
+    party_zweitstimmen_mandate <- party_zweitstimmen_mandate %>% mutate(mandate_plus_05=new_mandates+0.5)
 
 # min divisor 
-    test_party_zweitstimmen_mandate <- test_party_zweitstimmen_mandate %>% mutate(party_divisor_2=zweitstimmen/mandate_plus_05) 
+    party_zweitstimmen_mandate <- party_zweitstimmen_mandate %>% mutate(party_divisor_2=zweitstimmen/mandate_plus_05) 
 
 # max from previous step
-    test_party_zweitstimmen_mandate <- test_party_zweitstimmen_mandate %>% mutate(min_divisor=max(party_divisor_2))
+    party_zweitstimmen_mandate <- party_zweitstimmen_mandate %>% mutate(min_divisor=max(party_divisor_2))
 
 # votes divided by new divisor
-    test_party_zweitstimmen_mandate <- test_party_zweitstimmen_mandate %>% mutate(new_mandates2=round(zweitstimmen/min_divisor))
+    party_zweitstimmen_mandate <- party_zweitstimmen_mandate %>% mutate(new_mandates2=round(zweitstimmen/min_divisor))
 
 # size parliament with both divisors
-    test_party_zweitstimmen_mandate <- test_party_zweitstimmen_mandate %>% mutate(size1=sum(test_party_zweitstimmen_mandate$new_mandates),
-                                                                    size2=sum(test_party_zweitstimmen_mandate$new_mandates2))
+    party_zweitstimmen_mandate <- party_zweitstimmen_mandate %>% mutate(size1=sum(party_zweitstimmen_mandate$new_mandates),
+                                                                    size2=sum(party_zweitstimmen_mandate$new_mandates2))
 
 # paste size parliament into ueberhang mandate date frame
-     test_ueberhangmandate[[row,10]] <- test_party_zweitstimmen_mandate[[1,14]]
-     test_ueberhangmandate[[row,11]] <- test_party_zweitstimmen_mandate[[1,15]]
+     ueberhangmandate[[row,10]] <- party_zweitstimmen_mandate[[1,14]]
+     ueberhangmandate[[row,11]] <- party_zweitstimmen_mandate[[1,15]]
    
- }
+rm(row,party_subtract)}
+
+# cleam up values:
+  rm(CDU,CSU,SPD)  
+
+# modify the case where no adjustments needed:
+ueberhangmandate <- ueberhangmandate %>% arrange(cummulative_votes) %>% mutate(size1=replace(size1,cummulative_votes==max(cummulative_votes),598),
+                                                                                         size2=replace(size2,cummulative_votes==max(cummulative_votes),598))
+
+
+
 # add original result and drop not needed variable rank
-test_ueberhangmandate <- test_ueberhangmandate %>% 
+ueberhangmandate <- ueberhangmandate %>% 
                             add_row(votes_needed = 0,votes_halved = 0,cummulative_votes=0,size1=709,size2=709) %>%
                             replace(is.na(.), "Election") %>%
                             arrange(cummulative_votes) %>%
@@ -1010,17 +1016,18 @@ test_ueberhangmandate <- test_ueberhangmandate %>%
 #(115000*4)/46389615
 
 # as the data frame contains every Ueberhangmandat per party, I only need one observation per year
-  test_ueberhangmandate %>% 
+  ueberhangmandate %>% 
     select(size1,cummulative_votes) %>%
           ggplot(aes(x=`cummulative_votes`, y=`size1`,group=1)) +
                 geom_line(aes(group=1), color="#009E73") +
-                  geom_hline(aes(yintercept=709),alpha=0.7) +
+                  geom_hline(aes(yintercept=709),alpha=0.6) +
                   scale_y_continuous(limits = c(598, 725.1),
                        breaks = c(598,625,650,675,700,709,725), 
                        expand = c(0, 0),
-                       labels=c("598"="598 \n (heutige Normgröße)","625"="625","650"= "650","675"="675","700"= "700","709"="709 \n (akutelle Größe)","725"= "725 Sitze")) +
+                       labels=c("598"="598 \n (Normgröße)","625"="625","650"= "650","675"="675","700"= "700","709"="709 \n (akutelle Größe)","725"= "725 Sitze")) +
                   scale_x_continuous(breaks = sort(c(seq(0, 460000, by = 115000))),
-                       limits=c(0,460000), 
+                       limits=c(0,460000),
+                       expand = c(0, 0),
                        labels=c("0"="0","115000"="115 \n (0,2%)","230000"="230 \n (0,5%)","345000"="345 \n (0,7%)","460000"="460 \n (1%)"))  +
     labs(title = "Größe des Bundestages mit Ersttimmenverschiebung", subtitle="Stimmenverschiebung in 100.000. In Klammern: Prozentanteil an den gesamten Erststimmen",caption = "Quelle: Bundeswahlleiter, \n Eigene Berechnungen") +
     hp_theme() + theme(axis.text= element_text(size=7.5), axis.title.x = element_blank(),plot.title.position = "plot",  axis.title.y = element_blank(), 
