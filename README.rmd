@@ -944,7 +944,6 @@ rm(zweitstimmen)
   party_zweitstimmen_mandate <- party_zweitstimmen_mandate %>% mutate(selected_divisor=round_to_next_tousand(min_divisor)) %>%
                     mutate(selected_divisor=replace(selected_divisor,selected_divisor>max_divisor,round_to_next_hundred(min_divisor))) %>%
                     mutate(selected_divisor=replace(selected_divisor,selected_divisor>max_divisor,round_to_next_ten(min_divisor))) %>%
-                    mutate(selected_divisor=replace(selected_divisor,selected_divisor>max_divisor,round_to_next_full(min_divisor))) %>%
                     mutate(seats_party=round(zweitstimmen/selected_divisor)) %>%
                     mutate(final_size=sum(seats_party))    
     

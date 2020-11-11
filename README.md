@@ -76,44 +76,162 @@ hp_theme <- function(base_size = 13, base_family = "") {
   url <- 'https://www.bundeswahlleiter.de/service/glossar/u/ueberhangmandate.html'
 # as the data is presented as two tables on the url we need to read them in separately
 # first table [until 2009](before current election reform): no adjustments for Überhangmandate
-  first_part = url %>%
+  table = url %>%
     read_html() %>%
     html_node(xpath = '/html/body/div/div/main/table[1]') %>%
     html_table(fill = TRUE)
 # clean up: first row contains names needed in the variable names. Then apply
 # consistent and more intuitive names and keep only relevant variables 
-  first_part[] <- lapply(first_part, as.character)
-  names(first_part) <- paste(names(first_part), first_part[1, ], sep = "_")
-  first_part <- first_part %>%
+  table[] <- lapply(table, as.character)
+  names(table) <- paste(names(table), table[1, ], sep = "_")
+  historic_size <- table %>%
                     rename(`Jahr`=`Jahr der Bundestagswahl_Jahr der Bundestagswahl`,
                           `Wahlkreise`=`Zahl der Wahlkreise_Zahl der Wahlkreise`,
-                          `Mandate`=`Sitze insgesamt 1_Sitze insgesamt 1`) %>%
+                          `Mandates`=`Sitze insgesamt 1_Sitze insgesamt 1`) %>%
                   slice(2:49) %>%
                   select(c(-5)) %>%
                   rename_all(funs(str_replace(., "Überhangmandate", "Ueberhangmandate")))
 
 # second table [2013,2017](after current election reform): adjustments for Überhangmandate
-  second_part = url %>%
+  table = url %>%
     read_html() %>%
     html_node(xpath = '/html/body/div/div/main/table[2]') %>%
     html_table(fill = TRUE)
 # clean up (see above)
-  second_part[] <- lapply(second_part, as.character)
-  names(second_part) <- paste(names(second_part), second_part[1, ], sep = "_")
-  second_part <- second_part %>%
+  table[] <- lapply(table, as.character)
+  names(table) <- paste(names(table), table[1, ], sep = "_")
+  table %>%
                   rename(`Jahr`=`Jahr der Bundestagswahl_Jahr der Bundestagswahl`,
                         `Wahlkreise`=`Zahl der Wahlkreise_Zahl der Wahlkreise`,
                         `Mandate`=`Sitze insgesamt_Sitze insgesamt`) %>%
-                  rename_all(funs(str_replace(., "Überhänge", "Ueberhangmandate"))) %>%
-                  slice(c(2:8)) %>%
-                  select(c(1:6))  
+                  rename_all(funs(str_replace(., "Überhänge", "Ueberhangmandate")))  %>%
+                  slice(-c(1)) %>%
+                  slice(c(1:7)) %>%
+                  select(c(1:6))  %>%
+                   full_join(historic_size,.)
+```
+
+    ##    Jahr Wahlkreise Mandates Ueberhangmandate_insgesamt Ueberhangmandate_Anzahl
+    ## 1  1949        242      410                          2                       1
+    ## 2  1949        242      410                          2                       1
+    ## 3  1953        242      509                          3                       2
+    ## 4  1953        242      509                          3                       1
+    ## 5  1957        247      519                          3                       3
+    ## 6  1961        247      521                          5                       4
+    ## 7  1961        247      521                          5                       1
+    ## 8  1965        248      518                          0                       –
+    ## 9  1969        248      518                          0                       –
+    ## 10 1972        248      518                          0                       –
+    ## 11 1976        248      518                          0                       –
+    ## 12 1980        248      519                          1                       1
+    ## 13 1983        248      520                          2                       1
+    ## 14 1983        248      520                          2                       1
+    ## 15 1987        248      519                          1                       1
+    ## 16 1990        328      662                          6                       2
+    ## 17 1990        328      662                          6                       3
+    ## 18 1990        328      662                          6                       1
+    ## 19 1994        328      672                         16                       2
+    ## 20 1994        328      672                         16                       2
+    ## 21 1994        328      672                         16                       2
+    ## 22 1994        328      672                         16                       3
+    ## 23 1994        328      672                         16                       3
+    ## 24 1994        328      672                         16                       1
+    ## 25 1994        328      672                         16                       3
+    ## 26 1998        328      669                         13                       1
+    ## 27 1998        328      669                         13                       2
+    ## 28 1998        328      669                         13                       3
+    ## 29 1998        328      669                         13                       4
+    ## 30 1998        328      669                         13                       3
+    ## 31 2002        299      603                          5                       1
+    ## 32 2002        299      603                          5                       2
+    ## 33 2002        299      603                          5                       1
+    ## 34 2002        299      603                          5                       1
+    ## 35 2005        299      614                         16                       1
+    ## 36 2005        299      614                         16                       3
+    ## 37 2005        299      614                         16                       4
+    ## 38 2005        299      614                         16                       1
+    ## 39 2005        299      614                         16                       4
+    ## 40 2005        299      614                         16                       3
+    ## 41 2009        299      622                         24                       1
+    ## 42 2009        299      622                         24                       2
+    ## 43 2009        299      622                         24                       4
+    ## 44 2009        299      622                         24                       1
+    ## 45 2009        299      622                         24                       2
+    ## 46 2009        299      622                         24                       3
+    ## 47 2009        299      622                         24                      10
+    ## 48 2009        299      622                         24                       1
+    ## 49 2013        299     <NA>                          4                       4
+    ## 50 2013        299     <NA>                          4                       4
+    ## 51 2013        299     <NA>                          4                       4
+    ## 52 2013        299     <NA>                          4                       4
+    ## 53 2017        299     <NA>                         46                      36
+    ## 54 2017        299     <NA>                         46                       7
+    ## 55 2017        299     <NA>                         46                       3
+    ##    Ueberhangmandate_Partei Mandate
+    ## 1                      SPD    <NA>
+    ## 2                      CDU    <NA>
+    ## 3                      CDU    <NA>
+    ## 4                       DP    <NA>
+    ## 5                      CDU    <NA>
+    ## 6                      CDU    <NA>
+    ## 7                      CDU    <NA>
+    ## 8                        –    <NA>
+    ## 9                        –    <NA>
+    ## 10                       –    <NA>
+    ## 11                       –    <NA>
+    ## 12                     SPD    <NA>
+    ## 13                     SPD    <NA>
+    ## 14                     SPD    <NA>
+    ## 15                     CDU    <NA>
+    ## 16                     CDU    <NA>
+    ## 17                     CDU    <NA>
+    ## 18                     CDU    <NA>
+    ## 19                     CDU    <NA>
+    ## 20                     CDU    <NA>
+    ## 21                     CDU    <NA>
+    ## 22                     CDU    <NA>
+    ## 23                     CDU    <NA>
+    ## 24                     SPD    <NA>
+    ## 25                     SPD    <NA>
+    ## 26                     SPD    <NA>
+    ## 27                     SPD    <NA>
+    ## 28                     SPD    <NA>
+    ## 29                     SPD    <NA>
+    ## 30                     SPD    <NA>
+    ## 31                     SPD    <NA>
+    ## 32                     SPD    <NA>
+    ## 33                     SPD    <NA>
+    ## 34                     CDU    <NA>
+    ## 35                     SPD    <NA>
+    ## 36                     SPD    <NA>
+    ## 37                     SPD    <NA>
+    ## 38                     SPD    <NA>
+    ## 39                     CDU    <NA>
+    ## 40                     CDU    <NA>
+    ## 41                     CDU    <NA>
+    ## 42                     CDU    <NA>
+    ## 43                     CDU    <NA>
+    ## 44                     CDU    <NA>
+    ## 45                     CDU    <NA>
+    ## 46                     CSU    <NA>
+    ## 47                     CDU    <NA>
+    ## 48                     CDU    <NA>
+    ## 49                     CDU     631
+    ## 50                     CDU     631
+    ## 51                     CDU     631
+    ## 52                     CDU     631
+    ## 53                     CDU     709
+    ## 54                     CSU     709
+    ## 55                     SPD     709
+
+``` r
+  rm(table, url)  
+    
 
 # merge data frames and make everything numeric as it's needed for the graph 
-  historic_size <- full_join(first_part,second_part)
   historic_size[, 1:5] <- sapply(historic_size[, 1:5], as.numeric)
+# replace "-" for zero Ueberhangmandate for a party in a given year with NA  
   historic_size <- historic_size%>% mutate(Ueberhangmandate_Partei=replace(Ueberhangmandate_Partei, Ueberhangmandate_Partei=="–", NA)) 
-# drop unnecessary data
-  rm(first_part,second_part, url)
 ```
 
 ## Historic Size Bundestag Graph
@@ -122,8 +240,8 @@ hp_theme <- function(base_size = 13, base_family = "") {
 # as the data frame contains every Ueberhangmandat per party, I only need one observation per year
   historic_size %>%
     distinct(`Jahr`, .keep_all = TRUE) %>%
-    select(c(`Jahr`,`Mandate`)) %>%
-    ggplot(aes(x=`Jahr`, y=`Mandate`,group=1)) +
+    select(c(`Jahr`,`Mandates`)) %>%
+    ggplot(aes(x=`Jahr`, y=`Mandates`,group=1)) +
     geom_line(aes(group=1), color="#009E73") +
     geom_hline(aes(yintercept=598)) +
     scale_y_continuous(limits = c(300, 800.1),
@@ -161,10 +279,10 @@ ggsave("./HP_pic/historic_size_graph.jpg",width=4, height=3)
 
 | Partei | Überhangmandate (1949-2017) |
 | :----- | --------------------------: |
-| CDU    |                         112 |
-| CSU    |                          11 |
+| CDU    |                          60 |
+| CSU    |                           4 |
 | DP     |                           2 |
-| SPD    |                          38 |
+| SPD    |                          35 |
 
 ## 2017 Election Data Preparation
 
@@ -529,7 +647,7 @@ for (i in 1:16) {
         }
    
 # for graph: get margin from highest to second highest
-  loop_state$second_party <- apply(loop_state[, 4:10], 1, function(x) names(sort(x)[2]))
+  loop_state$tabley <- apply(loop_state[, 4:10], 1, function(x) names(sort(x)[2]))
  
 
    
@@ -695,13 +813,13 @@ for (i in 1:16) {
 # margins between first and second as data frame for graph (not optimized!!!)  
   clean_up <- clean_up  %>%
                     mutate(margin=0) %>%
-                    mutate(margin=replace(margin,  second_party == "CDU", CDU[second_party == "CDU"]),
-                          margin=replace(margin, second_party == "SPD", SPD[second_party == "SPD"]),
-                          margin=replace(margin, second_party == "LINKE", LINKE[second_party == "LINKE"]),
-                          margin=replace(margin, second_party == "GRÜNE", GRÜNE[second_party == "GRÜNE"]),
-                          margin=replace(margin, second_party == "CSU", CSU[second_party == "CSU"]),
-                          margin=replace(margin, second_party == "AFD", AFD[second_party == "AFD"]),
-                          margin=replace(margin, second_party == "FDP", FDP[second_party == "FDP"])) %>%
+                    mutate(margin=replace(margin,  tabley == "CDU", CDU[tabley == "CDU"]),
+                          margin=replace(margin, tabley == "SPD", SPD[tabley == "SPD"]),
+                          margin=replace(margin, tabley == "LINKE", LINKE[tabley == "LINKE"]),
+                          margin=replace(margin, tabley == "GRÜNE", GRÜNE[tabley == "GRÜNE"]),
+                          margin=replace(margin, tabley == "CSU", CSU[tabley == "CSU"]),
+                          margin=replace(margin, tabley == "AFD", AFD[tabley == "AFD"]),
+                          margin=replace(margin, tabley == "FDP", FDP[tabley == "FDP"])) %>%
                     as.data.frame()
 
   margins_placeholder <- clean_up %>% select(wahlkreisnummer,margin)
@@ -808,7 +926,7 @@ margins %>%
                          labels=c("0"="0","14000"="14", "28000"="28","42000"="42","56000"="56","70000"="70"),
                          limits=c(0,70000),
                          expand = c(0, 0)) +
-      labs(title = "Abstand Erst- und Zweitwahl nach Erststimme", subtitle="Prozent der Wahlkreis mit kummulierten Abstand in 1000",caption = "Quelle: Bundeswahlleiter \n eigene Berechnungen") +
+      labs(title = "Abstand Erst- und Zweitwahl nach Erststimme", subtitle="Prozent der Wahlkreis mit kummulierten Abstand in 1000",caption = "Quelle: Bundeswahlleiter, \n Eigene Berechnungen") +
       hp_theme() + theme(axis.text= element_text(size=7.5), axis.title.x = element_blank(),plot.title.position = "plot",  axis.title.y = element_blank(), 
                        panel.grid.major.x = element_blank(), panel.grid.major.y = element_line(size=.2, color="#656565"), axis.line.x=element_line( size=.3, color="black"),
                        legend.position = "right", legend.key = element_blank(), axis.ticks.y = element_blank(), axis.ticks.x =element_line( size=.3, color="black"),
@@ -834,7 +952,7 @@ map_optimized_election<- merge(shp_wahlkreise, map_optimized_election, by="id", 
     geom_polygon(aes(fill=change), show.legend = T) +
     geom_polygon(data=shp_wahlkreise, aes(x=long, y=lat, group=group), fill=NA, color="black", size=0.4) +
     scale_fill_manual(values=c("#32302e","#E3000F","white")) +
-    labs(title = "Änderungen nach Optimisierung", subtitle="",caption = "Quelle: Bundeswahlleiter \n eigene Berechnungen") +
+    labs(title = "Änderungen nach Optimisierung", subtitle="",caption = "Quelle: Bundeswahlleiter \n Eigene Berechnungen") +
     coord_map() + # apply projection
     theme_void() +  # remove axes
     theme()
@@ -927,10 +1045,42 @@ rm(zweitstimmen)
 # size parliament with both divisors
    party_zweitstimmen_mandate <- party_zweitstimmen_mandate %>% mutate(size1=sum(party_zweitstimmen_mandate$new_mandates),
                                                 size2=sum(party_zweitstimmen_mandate$new_mandates2))
+  
+   
+########################   
+  round_to_next_tousand <- function(x){
+    round(x+500,-3)
+   }
  
+  round_to_next_hundred <- function(x){
+    round(x+50,-2)
+   }  
+  
+  round_to_next_ten <- function(x){
+    round(x+1,-1)
+   }  
+
+  
+   
+   
+  party_zweitstimmen_mandate <- party_zweitstimmen_mandate %>% mutate(selected_divisor=round_to_next_tousand(min_divisor)) %>%
+                    mutate(selected_divisor=replace(selected_divisor,selected_divisor>max_divisor,round_to_next_hundred(min_divisor))) %>%
+                    mutate(selected_divisor=replace(selected_divisor,selected_divisor>max_divisor,round_to_next_ten(min_divisor))) %>%
+                    mutate(seats_party=round(zweitstimmen/selected_divisor)) %>%
+                    mutate(final_size=sum(seats_party))
+  
+   
+   
+   
+   
+    
 # paste size parliament into ueberhang mandate date frame                                         
     ueberhangmandate <- ueberhangmandate %>% mutate(size1=sum(party_zweitstimmen_mandate$new_mandates),
-                                          size2=sum(party_zweitstimmen_mandate$new_mandates2))
+                                                    max_divisor=mean(party_zweitstimmen_mandate$max_divisor),
+                                                    size2=sum(party_zweitstimmen_mandate$new_mandates2),
+                                                    min_divisor=mean(party_zweitstimmen_mandate$min_divisor),
+                                                    selected_divisor=mean(party_zweitstimmen_mandate$selected_divisor),
+                                                    final_size=mean(party_zweitstimmen_mandate$final_size))
 ```
 
 # Size Parliament
@@ -980,29 +1130,49 @@ rm(zweitstimmen)
 
 # size parliament with both divisors
     party_zweitstimmen_mandate <- party_zweitstimmen_mandate %>% mutate(size1=sum(party_zweitstimmen_mandate$new_mandates),
-                                                                    size2=sum(party_zweitstimmen_mandate$new_mandates2))
+                                                                        size2=sum(party_zweitstimmen_mandate$new_mandates2))
 
+# final divisor and final size    
+  party_zweitstimmen_mandate <- party_zweitstimmen_mandate %>% mutate(selected_divisor=round_to_next_tousand(min_divisor)) %>%
+                    mutate(selected_divisor=replace(selected_divisor,selected_divisor>max_divisor,round_to_next_hundred(min_divisor))) %>%
+                    mutate(selected_divisor=replace(selected_divisor,selected_divisor>max_divisor,round_to_next_ten(min_divisor))) %>%
+                    mutate(seats_party=round(zweitstimmen/selected_divisor)) %>%
+                    mutate(final_size=sum(seats_party))    
+    
+    
 # paste size parliament into ueberhang mandate date frame
      ueberhangmandate[[row,10]] <- party_zweitstimmen_mandate[[1,14]]
-     ueberhangmandate[[row,11]] <- party_zweitstimmen_mandate[[1,15]]
-   
+     ueberhangmandate[[row,11]] <- party_zweitstimmen_mandate[[1,8]]
+     ueberhangmandate[[row,12]] <- party_zweitstimmen_mandate[[1,15]]
+     ueberhangmandate[[row,13]] <- party_zweitstimmen_mandate[[1,12]]
+     ueberhangmandate[[row,14]] <- party_zweitstimmen_mandate[[1,16]]
+     ueberhangmandate[[row,15]] <- party_zweitstimmen_mandate[[1,18]]
+     
 rm(row,party_subtract)}
 
 # cleam up values:
   rm(CDU,CSU,SPD)  
-
+  
+# for better readability: omit decimal numbers
+  ueberhangmandate$max_divisor <- as.integer(ueberhangmandate$max_divisor)
+  ueberhangmandate$min_divisor <- as.integer(ueberhangmandate$min_divisor)
+  
 # modify the case where no adjustments needed:
-ueberhangmandate <- ueberhangmandate %>% arrange(cummulative_votes) %>% mutate(size1=replace(size1,cummulative_votes==max(cummulative_votes),598),
-                                                                                         size2=replace(size2,cummulative_votes==max(cummulative_votes),598))
+  ueberhangmandate <- ueberhangmandate %>% arrange(cummulative_votes) %>% mutate(size1=replace(size1,cummulative_votes==max(cummulative_votes),598),
+                                                                                         size2=replace(size2,cummulative_votes==max(cummulative_votes),598),
+                                                                                         final_size=replace(final_size,cummulative_votes==max(cummulative_votes),598))
 
 
 
 # add original result and drop not needed variable rank
-ueberhangmandate <- ueberhangmandate %>% 
-                            add_row(votes_needed = 0,votes_halved = 0,cummulative_votes=0,size1=709,size2=709) %>%
+  ueberhangmandate <- ueberhangmandate %>% 
+                            add_row(votes_needed = 0,votes_halved = 0,cummulative_votes=0,size1=709,size2=709,final_size=709) %>%
                             replace(is.na(.), "Election") %>%
                             arrange(cummulative_votes) %>%
                             select(-c(rank))
+  
+# just the changes
+  changes <- ueberhangmandate %>% distinct(final_size, .keep_all = TRUE)
 ```
 
 ## Dynamic Size Bundestag Graph
@@ -1017,8 +1187,8 @@ ueberhangmandate <- ueberhangmandate %>%
 
 # as the data frame contains every Ueberhangmandat per party, I only need one observation per year
   ueberhangmandate %>% 
-    select(size1,cummulative_votes) %>%
-          ggplot(aes(x=`cummulative_votes`, y=`size1`,group=1)) +
+    select(final_size,cummulative_votes) %>%
+          ggplot(aes(x=`cummulative_votes`, y=`final_size`,group=1)) +
                 geom_line(aes(group=1), color="#009E73") +
                   geom_hline(aes(yintercept=709),alpha=0.6) +
                   scale_y_continuous(limits = c(598, 725.1),
@@ -1040,5 +1210,4 @@ ueberhangmandate <- ueberhangmandate %>%
 
 # Things to look at:
 
-maybe makes some parts prettier:
-<https://www.infoworld.com/article/3454356/how-to-merge-data-in-r-using-r-merge-dplyr-or-datatable.html>
+<https://www.bmi.bund.de/DE/themen/verfassung/wahlrecht/bundestagswahlrecht/bundestagswahlrecht-node.html>
