@@ -259,13 +259,30 @@ ggsave("./HP_pic/Historic_Parliament_Size_graph.jpg",width=4, height=3)
 
 # drop aggregate values for each state as we care about counties primarily
   cleaned<-cleaned[!(cleaned$`Bundesland`==99), ]
+  
+# rename the seven parties represented in German Parliament with short forms
+# for better readability.
+cleaned <- cleaned %>% rename_all(
+  funs(str_replace(., "Christlich Demokratische Union Deutschlands", "CDU")))%>%
+  rename_all(
+  funs(str_replace(., "Sozialdemokratische Partei Deutschlands", "SPD")))%>%
+  rename_all(
+  funs(str_replace(., "DIE LINKE", "LINKE")))%>%
+  rename_all(
+  funs(str_replace(., "BÜNDNIS 90/DIE GRÜNEN", "GRÜNE")))%>%
+  rename_all(
+  funs(str_replace(., "Christlich-Soziale Union in Bayern e.V.", "CSU")))%>%
+  rename_all(
+  funs(str_replace(., "Freie Demokratische Partei", "FDP")))%>%
+  rename_all(
+  funs(str_replace(., "Alternative für Deutschland", "AFD")))
 
 #export clean data set as backup
   write.csv(cleaned,"cleaned.csv", row.names = TRUE)
 ```
 
 ### Check to see if all counties included 
-At the time of the 2017 election there were 299 counnties in Germany.
+At the time of the 2017 election there were 299 counties in Germany.
 
 ```{r county_check}
 nrow(cleaned)
@@ -281,31 +298,12 @@ nrow(cleaned)
     select(starts_with("Wahlkreis") | contains("Erststimme")) %>%
     select(-c(3:6)) %>%
     gather('Partei','Stimmen', 
-           `Christlich Demokratische Union Deutschlands Erststimmen`:
+           `CDU Erststimmen`:
              `Übrige Erststimmen`) %>%
     group_by(Wahlkreisnummer) %>%
     top_n(1, Stimmen) %>% 
-    mutate(wahlkreisnummer=as.numeric(Wahlkreisnummer)) %>%
-    mutate(Partei=replace(Partei, Partei==
-                      "Christlich Demokratische Union Deutschlands Erststimmen",
-                      "CDU"),
-          Partei=replace(Partei, Partei==
-                      "Sozialdemokratische Partei Deutschlands Erststimmen",
-                      "SPD"),
-          Partei=replace(Partei, Partei=="DIE LINKE Erststimmen", "LINKE"),
-          Partei=replace(Partei, Partei==
-                                  "BÜNDNIS 90/DIE GRÜNEN Erststimmen", 
-                                  "GRÜNE"),
-          Partei=replace(Partei, Partei==
-                      "Christlich-Soziale Union in Bayern e.V. Erststimmen",
-                      "CSU"),
-          Partei=replace(Partei, Partei==
-                      "Freie Demokratische Partei Erststimmen", 
-                      "FDP"),
-          Partei=replace(Partei, Partei==
-                      "Alternative für Deutschland Erststimmen", 
-                      "AFD"),
-          Partei=replace(Partei, is.numeric(Partei), "Andere")) %>%
+    mutate(wahlkreisnummer = as.numeric(Wahlkreisnummer)) %>%
+    mutate(Partei=str_replace(Partei, "Erststimmen", "")) %>%
     select(starts_with("Wahlkreis") | contains("Partei")) %>%
     mutate(id=wahlkreisnummer-1,id=as.character(id))
 
@@ -439,30 +437,32 @@ for (state in 1:16) {
   loop$zweitstimmen <- 0
   loop <- loop %>% 
     mutate(zweitstimmen=replace(zweitstimmen,partei=="CDU", 
-      sum(loop_state$`Christlich Demokratische Union Deutschlands Zweitstimmen`, 
+          sum(loop_state$`CDU Zweitstimmen`, 
           na.rm = TRUE)),
       
-      zweitstimmen=replace(zweitstimmen, partei=="SPD", 
-        sum(loop_state$`Sozialdemokratische Partei Deutschlands Zweitstimmen`, 
-                    na.rm = TRUE)),  
+          zweitstimmen=replace(zweitstimmen, partei=="SPD", 
+          sum(loop_state$`SPD Zweitstimmen`, 
+          na.rm = TRUE)),  
       
-      zweitstimmen=replace(zweitstimmen, partei=="LINKE",  
-                    sum(loop_state$`DIE LINKE Zweitstimmen`, na.rm = TRUE)),
+          zweitstimmen=replace(zweitstimmen, partei=="LINKE",  
+          sum(loop_state$`LINKE Zweitstimmen`, 
+          na.rm = TRUE)),
                                                  
-      zweitstimmen=replace(zweitstimmen, partei=="GRÜNE", 
-          sum(loop_state$`BÜNDNIS 90/DIE GRÜNEN Zweitstimmen`, na.rm = TRUE)),
+          zweitstimmen=replace(zweitstimmen, partei=="GRÜNE", 
+          sum(loop_state$`GRÜNE Zweitstimmen`, 
+          na.rm = TRUE)),
                                        
-      zweitstimmen=replace(zweitstimmen, partei=="CSU",
-          sum(loop_state$`Christlich-Soziale Union in Bayern e.V. Zweitstimmen`, 
-              na.rm = TRUE)),
+          zweitstimmen=replace(zweitstimmen, partei=="CSU",
+          sum(loop_state$`CSU Zweitstimmen`, 
+          na.rm = TRUE)),
       
-      zweitstimmen=replace(zweitstimmen, partei=="FDP",  
-          sum(loop_state$`Freie Demokratische Partei Zweitstimmen`, 
-              na.rm = TRUE)),  
+          zweitstimmen=replace(zweitstimmen, partei=="FDP",  
+          sum(loop_state$`FDP Zweitstimmen`, 
+          na.rm = TRUE)),  
       
-      zweitstimmen=replace(zweitstimmen, partei=="AFD", 
-          sum(loop_state$`Alternative für Deutschland Zweitstimmen`, 
-              na.rm = TRUE)))
+          zweitstimmen=replace(zweitstimmen, partei=="AFD", 
+          sum(loop_state$`AFD Zweitstimmen`, 
+          na.rm = TRUE)))
   
 # save to data frame  
   assign(paste0(parties_state[state]), loop, )
@@ -566,8 +566,8 @@ If you have time to spare, feel free to modify the code.
   
 # get sum of mandates for each party (this should equal final distribution)
   partei_zweitstimmen_mandates <-  partei_zweitstimmen_mandates %>% 
-                                  group_by(partei) %>% 
-                                  summarise(mandate_zweitstimmen = sum(mandates))
+                                group_by(partei) %>% 
+                                summarise(mandate_zweitstimmen = sum(mandates))
 # create output for markdown file
 partei_zweitstimmen_mandates %>% 
   arrange(-mandate_zweitstimmen) %>%
@@ -596,15 +596,15 @@ for (state in 1:16) {
   loop_state <- loop_state %>% 
                   select(c(1:3,8:14)) %>% 
                   rename(CDU = 
-                      `Christlich Demokratische Union Deutschlands Erststimmen`,
+                      `CDU Erststimmen`,
                       SPD = 
-                        `Sozialdemokratische Partei Deutschlands Erststimmen`,
-                      LINKE = `DIE LINKE Erststimmen`,
-                      GRÜNE = `BÜNDNIS 90/DIE GRÜNEN Erststimmen`,
+                        `SPD Erststimmen`,
+                      LINKE = `LINKE Erststimmen`,
+                      GRÜNE = `GRÜNE Erststimmen`,
                       CSU = 
-                          `Christlich-Soziale Union in Bayern e.V. Erststimmen`,
-                      FDP = `Freie Demokratische Partei Erststimmen`,
-                      AFD = `Alternative für Deutschland Erststimmen`)
+                          `CSU Erststimmen`,
+                      FDP = `FDP Erststimmen`,
+                      AFD = `AFD Erststimmen`)
 
 # Get the highest amount of 'Erststimmen' for each 'Wahlkreis': 
 
@@ -1096,22 +1096,22 @@ rm(ueberhang_parties)
     group_by(partei) %>%
     summarise(zweitstimmen = sum(zweitstimmen,na.rm=TRUE)) %>%
     mutate(partei=replace(partei, 
-            partei=="Christlich Demokratische Union Deutschlands Zweitstimmen", 
+            partei=="CDU Zweitstimmen", 
           "CDU"),
          partei=replace(partei,
-          partei=="Sozialdemokratische Partei Deutschlands Zweitstimmen", 
+          partei=="SPD Zweitstimmen", 
           "SPD"),
-         partei=replace(partei, partei=="DIE LINKE Zweitstimmen", "LINKE"),
-         partei=replace(partei, partei=="BÜNDNIS 90/DIE GRÜNEN Zweitstimmen", 
+         partei=replace(partei, partei=="LINKE Zweitstimmen", "LINKE"),
+         partei=replace(partei, partei=="GRÜNE Zweitstimmen", 
          "GRÜNE"),
          partei=replace(partei, 
-          partei=="Christlich-Soziale Union in Bayern e.V. Zweitstimmen", 
+          partei=="CSU Zweitstimmen", 
           "CSU"),
          partei=replace(partei, 
-          partei=="Freie Demokratische Partei Zweitstimmen", 
+          partei=="FDP Zweitstimmen", 
           "FDP"),
          partei=replace(partei, 
-          partei=="Alternative für Deutschland Zweitstimmen", 
+          partei=="AFD Zweitstimmen", 
           "AFD"))
 # merge
 partei_zweitstimmen_mandates <- left_join(partei_zweitstimmen_mandates,
@@ -1206,7 +1206,8 @@ actual_election <-  ueberhangmandate %>% select(10:15) %>% slice(1)
    CSU <- partei_zweitstimmen_mandates[[3,3]]
    SPD <- partei_zweitstimmen_mandates[[7,3]]
    
-# subtract a seat from the corresponding party (note only CDU,CSU and SPD have Ueberhangmandate)
+# subtract a seat from the corresponding party 
+# (note only CDU,CSU and SPD have Ueberhangmandate)
      partei_zweitstimmen_mandates <- partei_zweitstimmen_mandates  %>%
                           mutate(ueberhang_mandate=
                                    replace(ueberhang_mandate,  
@@ -1348,10 +1349,11 @@ rm(row,party_subtract)}
                                 "650"= "650","675"="675","700"= "700",
                                 "709"="709 \n (akutelle Größe)","725"= 
                                   "725 Sitze")) +
-                  scale_x_continuous(breaks = sort(c(seq(0, 460000, by = 115000))),
+                  scale_x_continuous(breaks = sort(c(seq(0, 460000, 
+                                                         by = 115000))),
                        limits=c(0,460000),
                        expand = c(0, 0),
-                       labels=c("0"="0","115000"="115 \n (0,2%)",
+                       labels=c("0"="0","115000"="115.000 \n (0,2%)",
                                 "230000"="230 \n (0,5%)",
                                 "345000"="345 \n (0,7%)",
                                 "460000"="460 \n (1%)"))  +
@@ -1377,4 +1379,46 @@ rm(row,party_subtract)}
 
 ```{r dynamic_size_graph_pic,echo=FALSE, eval=FALSE}
 ggsave("./HP_pic/dynamic_size_graph_pic.jpg",width=4, height=3)
+```
+
+### Margin by Party
+https://uc-r.github.io/t_testhttps://uc-r.github.io/t_test
+```{r margin_party_graph}
+ueberhangmandate %>%
+  filter(Wahlkreisname != "Election") %>%
+  select(mandate_actual, votes_needed) %>%
+  mutate(votes_needed = as.numeric(votes_needed)) %>%
+  group_by(mandate_actual) %>%
+        summarise_each( funs(mean, sd)) %>%
+        mutate(ci_low=mean-1.96*sd,
+               ci_high=mean+1.96*sd) %>%
+        ggplot() +
+        geom_pointrange(mapping=aes(x=reorder(mandate_actual, -mean), 
+                                    y=mean, 
+                                    ymin=ci_low, 
+                                    ymax=ci_high), 
+                                    color=c("#32302e","blue4","#E3000F")) +
+        
+        coord_flip() +
+        geom_hline(yintercept = 0, alpha=0.5) +
+        labs(title = "Unterschied nach Parteien", 
+    subtitle="XXX",
+    caption = "Quelle: Bundeswahlleiter, \n Eigene Berechnungen") +
+        hp_theme() + theme(axis.text= element_text(size=7.5), 
+                    axis.title.x = element_blank(),
+                    plot.title.position = "plot",  
+                    axis.title.y = element_blank(), 
+                    panel.grid.major.x =  element_line(size=.2, color="#656565"),
+                    panel.grid.major.y =  element_blank(),
+                    axis.line.x=element_line( size=.3, color="black"),
+                    legend.position = "right", 
+                    legend.key = element_blank(), 
+                    axis.ticks.y = element_blank(), 
+                    axis.ticks.x =element_line( size=.3, color="black"),
+                    plot.caption=element_text(size=5), 
+                    axis.text.x=element_text(color="black"))
+  
+```
+```{r margin_party_graph_pic,echo=FALSE, eval=FALSE}
+ggsave("./HP_pic/margin_party_graph_pic.jpg",width=4, height=3)
 ```
