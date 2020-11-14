@@ -5,7 +5,7 @@ Ueberhangmandate
 
 ``` r
 # data manipulation
-library(tidyr)
+library(tidyverse)
 library(dplyr)
 # optimization
 library(lpSolveAPI)
@@ -136,16 +136,42 @@ Historic_Parliament_Size <- full_join(Historic_Parliament_Size,table)
 
 ``` r
 # as the data frame contains every Ueberhangmandat per party, I only need one observation per year
-Historic_Parliament_Size %>%
+library(lubridate)
+```
+
+    ## 
+    ## Attaching package: 'lubridate'
+
+    ## The following objects are masked from 'package:rgeos':
+    ## 
+    ##     intersect, setdiff, union
+
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     date, intersect, setdiff, union
+
+``` r
+graph_historic_size <- data.frame("Jahr"=1949:2020, stringsAsFactors = FALSE)
+
+graph_historic_size <- Historic_Parliament_Size %>%
   distinct(`Jahr`, .keep_all = TRUE) %>%
   select(c(`Jahr`,`Mandates`)) %>%
+  left_join(graph_historic_size,.)
+```
+
+    ## Joining, by = "Jahr"
+
+``` r
+graph_historic_size %>%
+  fill(`Mandates`) %>%
   ggplot(aes(x=`Jahr`, y=`Mandates`,group=1)) +
   geom_line(aes(group=1), color="#009E73") +
   geom_hline(aes(yintercept=598)) +
-  scale_y_continuous(limits = c(300, 800.1),
-                       breaks = c(300,400,500,598,700,800), 
-                       expand = c(0, 0),
-                       labels=c("300" = "300", "400"="400", "500"="500", 
+  scale_y_continuous(position = "right",
+                    limits = c(300, 800.1),
+                    breaks = c(300,400,500,598,700,800), 
+                    expand = c(0, 0),
+                    labels=c("300" = "", "400"="400", "500"="500", 
                                 "598"="598 \n (2017 Normgröße)","700"= "700",
                                 "800"="800 Sitze")) +
     scale_x_continuous(breaks = sort(c(seq(1960, 2010, by = 10),1949,2017)),
@@ -166,15 +192,26 @@ Historic_Parliament_Size %>%
           legend.position = "right", legend.key = element_blank(), 
           axis.ticks.y = element_blank(), 
           axis.ticks.x = element_line( size=.3, color="black"),
-          plot.caption= element_text(size=5), 
+          plot.caption= element_text(size=5,hjust = 1.2), 
           axis.text.x= element_text(color="black"))
 ```
 
+    ## Warning: Removed 3 row(s) containing missing values (geom_path).
+
 ![](README_figs/Historic_Parliament_Size_graph-1.png)<!-- -->
+
+``` 
+   mutate(Jahr = as.Date(as.character(Jahr), format = "%Y")) %>%
+```
+
+mutate(Jahr = year(Jahr)) %\>% complete(Jahr = seq.Date(min(Jahr),
+max(Jahr), by=“day”))
 
 ``` r
 ggsave("./HP_pic/Historic_Parliament_Size_graph.jpg",width=4, height=3)
 ```
+
+    ## Warning: Removed 3 row(s) containing missing values (geom_path).
 
 ## Overview of Überhangmandaten for Parties
 
@@ -365,14 +402,14 @@ nrow(cleaned)
 ## Election Map 2017
 
 ``` r
-  ggplot(data=map_actual_election, 
+ggplot(data=map_actual_election, 
          aes(x = long, y = lat, group = group))+
     geom_polygon(aes(fill = Partei), 
                  show.legend = T) +
     geom_polygon(data=shp_wahlkreise, 
                  aes(x = long, y = lat, group = group), 
                  fill = NA, 
-                 color = "white", 
+                 color = "#656565", 
                  size = 0.4) +
     scale_fill_manual(values=c("royalblue1", "#32302e", "blue4",
                                "#46962b", "magenta1", "#E3000F")) +
@@ -380,8 +417,20 @@ nrow(cleaned)
          subtitle = "", 
          caption = "Quelle: Bundeswahlleiter") +
     coord_map() + # apply projection
-    theme_void() +  # remove axes
-    theme()
+    hp_theme() +
+    theme(axis.line=element_blank(),
+      axis.text.x=element_blank(),
+      axis.text.y=element_blank(),
+      axis.ticks=element_blank(),
+      axis.title.x=element_blank(),
+      axis.title.y=element_blank(),
+      legend.position="none",
+      panel.background=element_blank(),
+      panel.border=element_blank(),
+      panel.grid.major=element_blank(),
+      panel.grid.minor=element_blank(),
+      plot.title = element_text(size = rel(0.5)),
+      plot.caption = element_text(size = rel(0.2)))
 ```
 
 ![](README_figs/map_actual_election-1.png)<!-- -->
@@ -818,7 +867,7 @@ for (state in 1:16) {
 # create empty data frame, which are used to fill in values from all the 
 # counties: 
 # difference in votes first and second party in a county
-  margins <- data.frame(wahlkreisnummer=numeric(), margin=numeric())
+  graph_margins <- data.frame(wahlkreisnummer=numeric(), margin=numeric())
 
 # all relevant information for all counties from all states
   counties <- data.frame(wahlkreisnummer=numeric(), 
@@ -918,7 +967,7 @@ clean_up <- clean_up  %>%
   as.data.frame()
 
 margins_placeholder <- clean_up %>% select(wahlkreisnummer,margin)
-margins <- rbind(margins,margins_placeholder)
+graph_margins <- rbind(graph_margins,margins_placeholder)
   
   
   
@@ -1053,7 +1102,10 @@ map_optimized_election<- merge(shp_wahlkreise,
     geom_polygon(aes(fill=change), show.legend = T) +
     geom_polygon(data=shp_wahlkreise, 
                  aes(x=long, y=lat, group=group), 
-                 fill=NA, color="black", size=0.4) +
+                 fill=NA, color="#656565", size=0.1) +
+    geom_polygon(data=shp_bund, 
+                 aes(x=long, y=lat, group=group), 
+                 fill=NA, color="black", size=0.2) +
     scale_fill_manual(values=c("royalblue1", "#32302e",
                                "#46962b", "magenta1","#E3000F","white"),
                       name="Neues Direktmandat",
@@ -1062,8 +1114,20 @@ map_optimized_election<- merge(shp_wahlkreise,
          subtitle="",
          caption = "Quelle: Bundeswahlleiter \n Eigene Berechnungen")+
     coord_map() + # apply projection
-    theme_void() +  # remove axes
-    theme()
+    hp_theme() +
+    theme(axis.line=element_blank(),
+      axis.text.x=element_blank(),
+      axis.text.y=element_blank(),
+      axis.ticks=element_blank(),
+      axis.title.x=element_blank(),
+      axis.title.y=element_blank(),
+      legend.position="none",
+      panel.background=element_blank(),
+      panel.border=element_blank(),
+      panel.grid.major=element_blank(),
+      panel.grid.minor=element_blank(),
+      plot.title = element_text(size = rel(0.5)),
+      plot.caption = element_text(size = rel(0.2)))
 ```
 
 ![](README_figs/optimized_election_map-1.png)<!-- -->
@@ -1072,39 +1136,41 @@ map_optimized_election<- merge(shp_wahlkreise,
 
 ``` r
 # transform margin into a numeric value
-margins$margin <- as.numeric(margins$margin)
+graph_margins$margin <- as.numeric(graph_margins$margin)
 # arrange numbers and calculate the percent of counties
-margins %>% 
+graph_margins %>% 
   arrange(desc(margin)) %>%
   mutate(percent= 1:n() / 299)%>%
     ggplot(aes(y = percent, x = margin)) +
       geom_smooth(span = 0.1, color = "#009E73") +
-      scale_y_continuous(limits = c(0, 1.01),
-                       breaks = c(seq(0.25, 1, 0.25)),
-                       expand = c(0, 0), 
-                       labels=c("0.25" = "25", "0.5"="50", 
+      scale_y_continuous(position = "right",
+                         limits = c(0, 1.01),
+                         breaks = c(seq(0.25, 1, 0.25)),
+                         expand = c(0, 0), 
+                         labels=c("0.25" = "25", "0.5"="50", 
                                 "0.75"="75", "1"="100 %\n der Wahlkreise")) +
       scale_x_continuous(breaks =c(seq(0, 70000, 14000)),
-                         labels=c("0" = "0","14000" = "14", "28000" = "28",
-                                  "42000 "= "42","56000" = "56","70000" = "70"),
+                         labels=c("0" = "0","14000" = "14.000", "28000" = "28.000",
+                                  "42000 "= "42.000","56000" = "56.000",
+                                  "70000" = "70.000"),
                          limits=c(0, 70000),
                          expand = c(0, 0)) +
       labs(title = "Abstand Erst- und Zweitwahl nach Erststimme", 
            subtitle="Prozent der Wahlkreis mit kummulierten Abstand in 1000",
            caption = "Quelle: Bundeswahlleiter, \n Eigene Berechnungen") +
-       hp_theme() + theme(axis.text= element_text(size=7.5), 
-                    axis.title.x = element_blank(),
-                    plot.title.position = "plot",  
-                    axis.title.y = element_blank(), 
-                    panel.grid.major.x = element_blank(), 
-                    panel.grid.major.y = element_line(size=.2, color="#656565"), 
-                    axis.line.x=element_line( size=.3, color="black"),
-                    legend.position = "right", 
-                    legend.key = element_blank(), 
-                    axis.ticks.y = element_blank(), 
-                    axis.ticks.x =element_line( size=.3, color="black"),
-                    plot.caption=element_text(size=5), 
-                    axis.text.x=element_text(color="black"))
+       hp_theme() + 
+      theme(axis.text= element_text(size= 7.5), 
+          axis.title.x = element_blank(), 
+          plot.title.position = "plot",  
+          axis.title.y = element_blank(), 
+          panel.grid.major.x = element_blank(), 
+          panel.grid.major.y = element_line(size= .2, color="#656565"), 
+          axis.line.x= element_line(size= .3, color="black"),
+          legend.position = "right", legend.key = element_blank(), 
+          axis.ticks.y = element_blank(), 
+          axis.ticks.x = element_line( size =.3, color="black"),
+          plot.caption= element_text(size=5, hjust = 1.15), 
+          axis.text.x= element_text(color="black"))
 ```
 
 ![](README_figs/margins_graph-1.png)<!-- -->
@@ -1123,7 +1189,7 @@ ueberhangmandate <- counties %>%
 # votes need to be shifted for the county to flip)
 ueberhangmandate$cummulative_votes <- 0
   for (row in 1:nrow(ueberhangmandate)) {
-    ueberhangmandate[row,9] <- sum(ueberhangmandate$votes_needed[1:row])
+    ueberhangmandate[row,9] <- sum(ueberhangmandate$votes_halved[1:row])
   rm(row)}
 ```
 
@@ -1409,53 +1475,67 @@ rm(row,party_subtract)}
 ``` r
 # calculations for the percent of votes
 #sum(cleaned$`Gültige Erststimmen`)
-#115000/46389615
-#(115000*2)/46389615
-#(115000*3)/46389615
-#(115000*4)/46389615
+#60000/46389615
+#(60000*2)/46389615
+#(60000*3)/46389615
+#(60000*4)/46389615
 
 # as the data frame contains every Ueberhangmandat per party, I only need one observation per year
-  ueberhangmandate %>% 
-    select(final_size,cummulative_votes) %>%
-          ggplot(aes(x=`cummulative_votes`, y=`final_size`,group=1)) +
+graph_dynamic_size <- data.frame("cummulative_votes"=min(ueberhangmandate$cummulative_votes):max(ueberhangmandate$cummulative_votes), stringsAsFactors = FALSE) 
+  
+
+graph_dynamic_size <- ueberhangmandate %>%
+  select(c(`cummulative_votes`,`final_size`)) %>%
+  left_join(graph_dynamic_size,.) %>%
+  fill(`final_size`)
+```
+
+    ## Joining, by = "cummulative_votes"
+
+``` r
+graph_dynamic_size %>%
+  ggplot(aes(x=`cummulative_votes`, y=`final_size`,group=1)) +
                 geom_line(aes(group=1), color="#009E73") +
                   geom_hline(aes(yintercept=709),alpha=0.6) +
-                  scale_y_continuous(limits = c(598, 725.1),
-                       breaks = c(598,625,650,675,700,709,725), 
+                  scale_y_continuous(position = "right",
+                                     limits = c(598, 725.1),
+                                     breaks = c(598,625,650,675,700,709,725), 
+                                    expand = c(0, 0),
+                                labels=c("598"="598 (Normgröße)","625"="625",
+                                          "650"= "650","675"="675","700"= "700",
+                                          "709"="709 (akutelle Größe)","725"= 
+                                          "725 Sitze")) +
+                  scale_x_continuous(breaks = sort(c(seq(0, 240000, 
+                                                         by = 60000))),
+                       limits=c(0,240000),
                        expand = c(0, 0),
-                       labels=c("598"="598 \n (Normgröße)","625"="625",
-                                "650"= "650","675"="675","700"= "700",
-                                "709"="709 \n (akutelle Größe)","725"= 
-                                  "725 Sitze")) +
-                  scale_x_continuous(breaks = sort(c(seq(0, 460000, 
-                                                         by = 115000))),
-                       limits=c(0,460000),
-                       expand = c(0, 0),
-                       labels=c("0"="0","115000"="115.000 \n (0,2%)",
-                                "230000"="230 \n (0,5%)",
-                                "345000"="345 \n (0,7%)",
-                                "460000"="460 \n (1%)"))  +
+                       labels=c("0"="0","60000"="60.000 \n (0,13%)",
+                                "120000"="120.000 \n (0,26%)",
+                                "180000"="180.000 \n (0,39%)",
+                                "240000"="240.000 \n (0.52%)"))  +
     labs(title = "Größe des Bundestages mit Ersttimmenverschiebung", 
     subtitle="Stimmenverschiebung in 100.000. In Klammern: Prozentanteil an den gesamten Erststimmen",
     caption = "Quelle: Bundeswahlleiter, \n Eigene Berechnungen") +
-    hp_theme() + theme(axis.text= element_text(size=7.5), 
-                    axis.title.x = element_blank(),
-                    plot.title.position = "plot",  
-                    axis.title.y = element_blank(), 
-                    panel.grid.major.x = element_blank(), 
-                    panel.grid.major.y = element_line(size=.2, color="#656565"), 
-                    axis.line.x=element_line( size=.3, color="black"),
-                    legend.position = "right", 
-                    legend.key = element_blank(), 
-                    axis.ticks.y = element_blank(), 
-                    axis.ticks.x =element_line( size=.3, color="black"),
-                    plot.caption=element_text(size=5), 
-                    axis.text.x=element_text(color="black"))
+    hp_theme() + 
+    theme(axis.text= element_text(size= 7.5), 
+          axis.title.x = element_blank(), 
+          plot.title.position = "plot",  
+          axis.title.y = element_blank(), 
+          panel.grid.major.x = element_blank(), 
+          panel.grid.major.y = element_line(size= .2, color="#656565"), 
+          axis.line.x= element_line(size= .3, color="black"),
+          legend.position = "right", legend.key = element_blank(), 
+          axis.ticks.y = element_blank(), 
+          axis.ticks.x = element_line( size=.3, color="black"),
+          plot.caption= element_text(size=5, hjust = 1.15), 
+          axis.text.x= element_text(color="black"))
 ```
 
 ![](README_figs/dynamic_size_graph-1.png)<!-- -->
 
 ### Margin by Party
+
+<https://uc-r.github.io/t_testhttps://uc-r.github.io/t_test>
 
 ``` r
 ueberhangmandate %>%
@@ -1478,24 +1558,47 @@ ueberhangmandate %>%
         labs(title = "Unterschied nach Parteien", 
     subtitle="XXX",
     caption = "Quelle: Bundeswahlleiter, \n Eigene Berechnungen") +
-        hp_theme() + theme(axis.text= element_text(size=7.5), 
-                    axis.title.x = element_blank(),
-                    plot.title.position = "plot",  
-                    axis.title.y = element_blank(), 
-                    panel.grid.major.x =  element_line(size=.2, color="#656565"),
-                    panel.grid.major.y =  element_blank(),
-                    axis.line.x=element_line( size=.3, color="black"),
-                    legend.position = "right", 
-                    legend.key = element_blank(), 
-                    axis.ticks.y = element_blank(), 
-                    axis.ticks.x =element_line( size=.3, color="black"),
-                    plot.caption=element_text(size=5), 
-                    axis.text.x=element_text(color="black"))
+    hp_theme() + 
+    theme(axis.text= element_text(size= 7.5), 
+          axis.title.x = element_blank(), 
+          plot.title.position = "plot",  
+          axis.title.y = element_blank(), 
+          panel.grid.major.x = element_blank(), 
+          panel.grid.major.y = element_line(size= .2, color="#656565"), 
+          axis.line.x= element_line(size= .3, color="black"),
+          legend.position = "right", legend.key = element_blank(), 
+          axis.ticks.y = element_blank(), 
+          axis.ticks.x = element_line( size=.3, color="black"),
+          plot.caption= element_text(size=5, hjust = 1), 
+          axis.text.x= element_text(color="black"))
 ```
 
-    ## Warning: `summarise_each_()` is deprecated as of dplyr 0.7.0.
-    ## Please use `across()` instead.
-    ## This warning is displayed once every 8 hours.
-    ## Call `lifecycle::last_warnings()` to see where this warning was generated.
-
 ![](README_figs/margin_party_graph-1.png)<!-- -->
+
+### t-test
+
+``` r
+library(rstatix)
+```
+
+    ## 
+    ## Attaching package: 'rstatix'
+
+    ## The following object is masked from 'package:stats':
+    ## 
+    ##     filter
+
+``` r
+ueberhangmandate %>%
+  filter(Wahlkreisname != "Election") %>%
+  select(mandate_actual, votes_needed) %>%
+  mutate(votes_needed = as.numeric(votes_needed)) %>% 
+pairwise_t_test(votes_needed ~ mandate_actual, p.adjust.method = "bonferroni")
+```
+
+    ## # A tibble: 3 x 9
+    ##   .y.          group1 group2    n1    n2      p p.signif  p.adj p.adj.signif
+    ## * <chr>        <chr>  <chr>  <int> <int>  <dbl> <chr>     <dbl> <chr>       
+    ## 1 votes_needed CDU    CSU       36     7 0.013  *        0.0389 *           
+    ## 2 votes_needed CDU    SPD       36     3 0.538  ns       1      ns          
+    ## 3 votes_needed CSU    SPD        7     3 0.0423 *        0.127  ns
