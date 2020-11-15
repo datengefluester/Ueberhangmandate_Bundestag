@@ -135,35 +135,24 @@ Historic_Parliament_Size <- full_join(Historic_Parliament_Size,table)
 ## Historic Size Bundestag Graph
 
 ``` r
-# as the data frame contains every Ueberhangmandat per party, I only need one observation per year
-library(lubridate)
-```
+# as the data frame contains every Ueberhangmandat per party, 
+# I only need one observation per year. However, the remaining years also need
+# to have numbers to achieve abrupt changes in the graph. Hence, the fill
+# commands.
 
-    ## 
-    ## Attaching package: 'lubridate'
-
-    ## The following objects are masked from 'package:rgeos':
-    ## 
-    ##     intersect, setdiff, union
-
-    ## The following objects are masked from 'package:base':
-    ## 
-    ##     date, intersect, setdiff, union
-
-``` r
 graph_historic_size <- data.frame("Jahr"=1949:2020, stringsAsFactors = FALSE)
 
 graph_historic_size <- Historic_Parliament_Size %>%
   distinct(`Jahr`, .keep_all = TRUE) %>%
   select(c(`Jahr`,`Mandates`)) %>%
-  left_join(graph_historic_size,.)
+  left_join(graph_historic_size,.) %>%
+  fill(`Mandates`)
 ```
 
     ## Joining, by = "Jahr"
 
 ``` r
 graph_historic_size %>%
-  fill(`Mandates`) %>%
   ggplot(aes(x=`Jahr`, y=`Mandates`,group=1)) +
   geom_line(aes(group=1), color="#009E73") +
   geom_hline(aes(yintercept=598)) +
@@ -174,11 +163,12 @@ graph_historic_size %>%
                     labels=c("300" = "", "400"="400", "500"="500", 
                                 "598"="598 \n (2017 Normgröße)","700"= "700",
                                 "800"="800 Sitze")) +
-    scale_x_continuous(breaks = sort(c(seq(1960, 2010, by = 10),1949,2017)),
-                       limits=c(1949,2017), 
+    scale_x_continuous(breaks = sort(c(seq(1960, 2020, by = 10),1949)),
+                       limits=c(1949,2020.1), 
                        labels=c("1949"="1949","1960"="60","1970"="70",
                                 "1980"="80","1990"="90","2000"="2000",
-                                "2010"="10", "2017"="17")) +
+                                "2010"="10", "2020"="20"),
+                        expand = c(0, 0)) +
     labs(title = "Historische Entwicklung der Größe des Bundestages", 
          subtitle="",caption = "Quelle: Bundeswahlleiter") +
     hp_theme() + 
@@ -196,22 +186,11 @@ graph_historic_size %>%
           axis.text.x= element_text(color="black"))
 ```
 
-    ## Warning: Removed 3 row(s) containing missing values (geom_path).
-
 ![](README_figs/Historic_Parliament_Size_graph-1.png)<!-- -->
-
-``` 
-   mutate(Jahr = as.Date(as.character(Jahr), format = "%Y")) %>%
-```
-
-mutate(Jahr = year(Jahr)) %\>% complete(Jahr = seq.Date(min(Jahr),
-max(Jahr), by=“day”))
 
 ``` r
 ggsave("./HP_pic/Historic_Parliament_Size_graph.jpg",width=4, height=3)
 ```
-
-    ## Warning: Removed 3 row(s) containing missing values (geom_path).
 
 ## Overview of Überhangmandaten for Parties
 
@@ -434,6 +413,43 @@ ggplot(data=map_actual_election,
 ```
 
 ![](README_figs/map_actual_election-1.png)<!-- -->
+
+## Distribution of size of counties by Erststimmen cast
+
+``` r
+cleaned %>%
+  select(`Gültige Erststimmen`)  %>%
+  ggplot(aes(x=`Gültige Erststimmen`)) + 
+    geom_bar(color="#009E73", fill="#009E73") +
+    scale_x_binned(breaks = c(110000, 120000, 130000, 140000, 150000, 160000, 
+                            170000, 180000, 190000),
+                   labels = c("110000"="110","120000"="120","130000"="130",
+                            "140000"="140","150000"="150","160000"="160",
+                            "170000"="170","180000"="180","190000"="190.000")) +
+    scale_y_continuous(position = "right", 
+                       expand = c(0, 0),
+                       limits = c(0, 60.1),
+                       breaks = c(20,40,60),
+                       labels = c("20"="20","40"="40","60" = "60 Wahlkreise")) +
+    labs(title = "Größe der Wahlkreise", 
+         subtitle="nach abgegebenen gültigen Erststimmen",
+         caption = "Quelle: Bundeswahlleiter") +
+    hp_theme() + 
+    theme(axis.text= element_text(size= 7.5), 
+          axis.title.x = element_blank(), 
+          plot.title.position = "plot",  
+          axis.title.y = element_blank(), 
+          panel.grid.major.x = element_blank(), 
+          panel.grid.major.y = element_line(size= .2, color="#656565"), 
+          axis.line.x= element_line(size= .3, color="black"),
+          legend.position = "right", legend.key = element_blank(), 
+          axis.ticks.y = element_blank(), 
+          axis.ticks.x = element_line( size=.3, color="black"),
+          plot.caption= element_text(size=5,hjust = 1), 
+          axis.text.x= element_text(color="black"))
+```
+
+![](README_figs/graph_vote_distribution-1.png)<!-- -->
 
 # State Data Frames
 
@@ -742,9 +758,7 @@ for (state in 1:16) {
   assign(paste0(counties_state[state]), loop_state,)
 
 # cleanup
-  rm(loop_state,state,x,y,max)    
-
-}
+  rm(loop_state,state,x,y,max)}
 ```
 
 # Actual Optimization
@@ -986,9 +1000,8 @@ graph_margins <- rbind(graph_margins,margins_placeholder)
 # merge with data frame for analysis
  counties <- rbind(counties,clean_up)
 # cleanup
-  rm(loop_state,state,margins_placeholder,clean_up,ueberhang_placerholder,state)  
-
-}
+  rm(loop_state,state,margins_placeholder,clean_up,
+     ueberhang_placerholder,state) }
 ```
 
 # Drop not needed data frames and values:
@@ -1323,6 +1336,9 @@ rm(zweitstimmen)
     mutate(selected_divisor=replace(selected_divisor,
                                     selected_divisor>max_divisor,
                                     round_to_next_ten(min_divisor))) %>%
+    mutate(selected_divisor=replace(selected_divisor,
+                                    selected_divisor>max_divisor,
+                                    ceiling(min_divisor))) %>%
     mutate(seats_party=round(zweitstimmen/selected_divisor)) %>%
     mutate(final_size=sum(seats_party))
   
@@ -1455,26 +1471,31 @@ rm(row,party_subtract)}
 
 
 # add original result and drop not needed variable rank
+# values can be look up in acutal_election data frame
   ueberhangmandate <- ueberhangmandate %>% 
                             add_row(votes_needed = 0,
                                     votes_halved = 0,
-                                    cummulative_votes=0,
-                                    min_size=709,
-                                    max_size=709,
-                                    final_size=709) %>%
+                                    cummulative_votes = 0,
+                                    min_size = 709,
+                                    max_size = 709,
+                                    final_size = 709,
+                                    max_divisor = 62394.27,
+                                    min_divisor = 62202.28) %>%
                             replace(is.na(.), "Election") %>%
                             arrange(cummulative_votes) %>%
                             select(-c(rank))
-  
-# just the changes
-  changes <- ueberhangmandate %>% distinct(final_size, .keep_all = TRUE)
 ```
 
 ## Dynamic Size Bundestag Graph
 
 ``` r
 # calculations for the percent of votes
-#sum(cleaned$`Gültige Erststimmen`)
+sum(cleaned$`Gültige Erststimmen`)
+```
+
+    ## [1] 46389615
+
+``` r
 #60000/46389615
 #(60000*2)/46389615
 #(60000*3)/46389615
@@ -1535,8 +1556,6 @@ graph_dynamic_size %>%
 
 ### Margin by Party
 
-<https://uc-r.github.io/t_testhttps://uc-r.github.io/t_test>
-
 ``` r
 ueberhangmandate %>%
   filter(Wahlkreisname != "Election") %>%
@@ -1579,16 +1598,6 @@ ueberhangmandate %>%
 
 ``` r
 library(rstatix)
-```
-
-    ## 
-    ## Attaching package: 'rstatix'
-
-    ## The following object is masked from 'package:stats':
-    ## 
-    ##     filter
-
-``` r
 ueberhangmandate %>%
   filter(Wahlkreisname != "Election") %>%
   select(mandate_actual, votes_needed) %>%
