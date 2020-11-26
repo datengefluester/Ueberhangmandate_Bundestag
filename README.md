@@ -1455,18 +1455,7 @@ rm(row,party_subtract)}
   ueberhangmandate$max_divisor <- as.integer(ueberhangmandate$max_divisor)
   ueberhangmandate$min_divisor <- as.integer(ueberhangmandate$min_divisor)
   
-# modify the case where no adjustments needed:
-  ueberhangmandate <- ueberhangmandate %>% 
-    arrange(cummulative_votes) %>% 
-    mutate(min_size=replace(min_size,
-                            cummulative_votes==max(cummulative_votes),
-                            598),
-          max_size=replace(max_size,
-                           cummulative_votes==max(cummulative_votes),
-                           598),
-          final_size=replace(final_size,
-                             cummulative_votes==max(cummulative_votes),
-                             598))
+
 
 
 
