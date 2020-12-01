@@ -423,9 +423,9 @@ cleaned %>%
     geom_bar(color="#009E73", fill="#009E73") +
     scale_x_binned(breaks = c(110000, 120000, 130000, 140000, 150000, 160000, 
                             170000, 180000, 190000),
-                   labels = c("110000"="110","120000"="120","130000"="130",
+                   labels = c("110000"="<=110","120000"="120","130000"="130",
                             "140000"="140","150000"="150","160000"="160",
-                            "170000"="170","180000"="180","190000"="190.000")) +
+                            "170000"="170","180000"="180","190000"=">=190.000")) +
     scale_y_continuous(position = "right", 
                        expand = c(0, 0),
                        limits = c(0, 60.1),
@@ -1004,6 +1004,16 @@ graph_margins <- rbind(graph_margins,margins_placeholder)
      ueberhang_placerholder,state) }
 ```
 
+``` r
+# export parties state data frames for dash board
+path <- "./state_parties/"
+lapply(parties_state, function(x) 
+  write.csv(get(x), 
+            paste(path,paste(x, "csv", sep="."),sep="") , 
+            row.names = FALSE))
+rm(path) 
+```
+
 # Drop not needed data frames and values:
 
 ``` r
@@ -1169,7 +1179,7 @@ graph_margins %>%
                          limits=c(0, 70000),
                          expand = c(0, 0)) +
       labs(title = "Abstand Erst- und Zweitwahl nach Erststimme", 
-           subtitle="Prozent der Wahlkreis mit kummulierten Abstand in 1000",
+           subtitle="Prozent der Wahlkreis mit kummulierten Abstand oder weniger in 1000",
            caption = "Quelle: Bundeswahlleiter, \n Eigene Berechnungen") +
        hp_theme() + 
       theme(axis.text= element_text(size= 7.5), 
@@ -1600,3 +1610,16 @@ pairwise_t_test(votes_needed ~ mandate_actual, p.adjust.method = "bonferroni")
     ## 1 votes_needed CDU    CSU       36     7 0.013  *        0.0389 *           
     ## 2 votes_needed CDU    SPD       36     3 0.538  ns       1      ns          
     ## 3 votes_needed CSU    SPD        7     3 0.0423 *        0.127  ns
+
+### Finalising the data set for Shiny Dashboard
+
+``` r
+dashboard <- map_optimized_election %>% 
+  mutate(Wahlkreisnummer=as.character(Wahlkreisnummer)) %>% 
+  left_join(.,ueberhangmandate) %>% 
+  mutate(Ueberhang=ifelse(votes_needed==0,1,0)) 
+
+
+
+write.csv(dashboard,"dashboard.csv", row.names = TRUE)
+```
