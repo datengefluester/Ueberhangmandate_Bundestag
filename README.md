@@ -22,6 +22,9 @@ library(rgeos)
 library(mapproj)
 # package for table
 library(knitr)
+# for gif
+library(gganimate)
+library(transformr)
 ```
 
 ## Theme
@@ -147,11 +150,7 @@ graph_historic_size <- Historic_Parliament_Size %>%
   select(c(`Jahr`,`Mandates`)) %>%
   left_join(graph_historic_size,.) %>%
   fill(`Mandates`)
-```
-
-    ## Joining, by = "Jahr"
-
-``` r
+  
 graph_historic_size %>%
   ggplot(aes(x=`Jahr`, y=`Mandates`,group=1)) +
   geom_line(aes(group=1), color="#009E73") +
@@ -635,7 +634,9 @@ slower. If you have time to spare, feel free to modify the code.
                         all.equal(nrw)
 ```
 
-    ## [1] TRUE
+    ## [1] "Component \"partei\": Modes: character, numeric"                      
+    ## [2] "Component \"partei\": Attributes: < target is NULL, current is list >"
+    ## [3] "Component \"partei\": target is character, current is factor"
 
 ``` r
 # clean up
@@ -1003,6 +1004,8 @@ graph_margins <- rbind(graph_margins,margins_placeholder)
   rm(loop_state,state,margins_placeholder,clean_up,
      ueberhang_placerholder,state) }
 ```
+
+### Export individual state data frames
 
 ``` r
 # export parties state data frames for dash board
@@ -1500,8 +1503,12 @@ sum(cleaned$`Gültige Erststimmen`)
 #(60000*3)/46389615
 #(60000*4)/46389615
 
-# as the data frame contains every Ueberhangmandat per party, I only need one observation per year
-graph_dynamic_size <- data.frame("cummulative_votes"=min(ueberhangmandate$cummulative_votes):max(ueberhangmandate$cummulative_votes), stringsAsFactors = FALSE) 
+# as the data frame contains every Ueberhangmandat per party, 
+# I only need one observation per year
+graph_dynamic_size <- data.frame("cummulative_votes"=
+                                   min(ueberhangmandate$cummulative_votes):
+                                   max(ueberhangmandate$cummulative_votes), 
+                                 stringsAsFactors = FALSE) 
   
 
 graph_dynamic_size <- ueberhangmandate %>%
@@ -1611,15 +1618,124 @@ pairwise_t_test(votes_needed ~ mandate_actual, p.adjust.method = "bonferroni")
     ## 2 votes_needed CDU    SPD       36     3 0.538  ns       1      ns          
     ## 3 votes_needed CSU    SPD        7     3 0.0423 *        0.127  ns
 
-### Finalising the data set for Shiny Dashboard
+### Creating GIF
 
 ``` r
-dashboard <- map_optimized_election %>% 
-  mutate(Wahlkreisnummer=as.character(Wahlkreisnummer)) %>% 
-  left_join(.,ueberhangmandate) %>% 
-  mutate(Ueberhang=ifelse(votes_needed==0,1,0)) 
+# create data frame for all "sub data frames" for the gif:
+# for each county create a duplicate of votes changed for 0 to 240000 and the 
+# corresponding size of parliament. So we can use these in the gif as states
+gif <- counties %>% 
+  select(Wahlkreisnummer) %>% 
+  mutate("1" = "0",
+        "2" = 20000,
+         "3" = 40000,
+         "4" = 60000,
+         "5" = 80000,
+         "6" = 100000,
+         "7" = 120000,
+         "8" = 140000,
+         "9" = 160000,
+         "10" = 180000,
+         "11" = 200000,
+         "12" = 220000,
+         "13" = 240000) %>%
+  gather(2:14, key = tmp, value = Votes) %>% 
+  select(-c("tmp")) %>% 
+  mutate(size= 709) %>% 
+  mutate(size=replace(size, Votes=="20000", 700),
+         size=replace(size, Votes=="40000", 700),
+         size=replace(size, Votes=="60000", 685),
+         size=replace(size, Votes=="80000", 685),
+         size=replace(size, Votes=="100000", 671),
+         size=replace(size, Votes=="120000", 654),
+         size=replace(size, Votes=="140000", 625),
+         size=replace(size, Votes=="160000", 625),
+         size=replace(size, Votes=="180000", 625),
+         size=replace(size, Votes=="200000", 619),
+         size=replace(size, Votes=="220000", 619),
+         size=replace(size, Votes=="240000", 619)) %>%
+   full_join(.,map_optimized_election)
 
 
+# create data frame with all counties. Actual and optimized vote, cumulative 
+# votes and size parliament
+gif <- ueberhangmandate %>% 
+  filter(Wahlkreisnummer!="Election") %>% 
+  mutate(Wahlkreisnummer = as.numeric(Wahlkreisnummer)) %>%
+  select(c(1,8,14)) %>%
+  right_join(gif, by="Wahlkreisnummer") %>% 
+  mutate(cummulative_votes=replace( cummulative_votes,
+                                    is.na(cummulative_votes),
+                                    0))
 
-write.csv(dashboard,"dashboard.csv", row.names = TRUE)
+# replace to NA if not a überhangmandate for given number of votes
+gif <- gif %>%
+  mutate(mandate_map=mandate_actual) %>% 
+   mutate(mandate_map=replace(mandate_map,
+                             cummulative_votes==0,
+                             NA)) %>% 
+   mutate(mandate_map=replace(mandate_map,
+                             cummulative_votes <= Votes,
+                             NA)) %>% 
+   mutate(mandate_map = replace(mandate_map,is.na(mandate_map),"white")) %>% 
+   mutate(mandate_map = as.factor(mandate_map)) %>%  
+   mutate(Votes = format(as.numeric(Votes), scientific = FALSE))  %>%
+   mutate(Votes = as.character(Votes)) %>%
+   mutate(States = paste(Votes,size, sep=". Größe Bundestag: ")) %>%
+   mutate(States = str_squish(States)) %>% 
+   mutate(States = str_replace(States,"0000","0.000")) %>%
+   mutate(States = str_replace(States,"10.0000","100.000")) %>%
+   mutate(States = str_replace(States,"20.0000","200.000")) 
+
+
+# define colors for parties
+Colors <-c("CSU" = "blue4",
+           "CDU" = "#32302e",
+           "GRÜNE" = "#46962b", 
+           "LINKE" = "magenta1",
+           "SPD" = "#E3000F",
+           "AFD" = "royalblue1",
+           "FDP" = "#ffed00",
+           "white"="white") 
+
+# gif
+p <-  ggplot(data=gif, aes(x=long, y=lat, group=group))+
+   geom_polygon(aes(fill=mandate_map), show.legend = T) +
+   geom_polygon(data=shp_wahlkreise, 
+               aes(x=long, y=lat, group=group), 
+               fill=NA, color="#656565", size=0.1) +
+  geom_polygon(data=shp_bund, 
+               aes(x=long, y=lat, group=group), 
+               fill=NA, color="black", size=0.2) +
+  scale_fill_manual(values= Colors,
+                    name="Neues Direktmandat",
+                    na.translate = F) +
+     labs(title = "Überhangmandate", 
+         subtitle="Wählerstimmen verändert: {closest_state}",
+         caption = "Quelle: Bundeswahlleiter \n Eigene Berechnungen")+
+    coord_map() + # apply projection
+    hp_theme() +
+    theme(axis.line=element_blank(),
+      axis.text.x=element_blank(),
+      axis.text.y=element_blank(),
+      axis.ticks=element_blank(),
+      axis.title.x=element_blank(),
+      axis.title.y=element_blank(),
+      legend.position="none",
+      panel.background=element_blank(),
+      panel.border=element_blank(),
+      panel.grid.major=element_blank(),
+      panel.grid.minor=element_blank(),
+      plot.title = element_text(size = rel(1.5)),
+      plot.subtitle = element_text(size= rel(0.7)),
+      plot.caption = element_text(size = rel(0.6)))
+
+graph <- p + transition_states(States,
+                               transition_length = 2,
+                               state_length = 1)
+animate(graph, height = 800, width =800)
 ```
+
+![](README_figs/gif-1.gif)<!-- -->
+
+### Finalising the data set for Shiny Dashboard
