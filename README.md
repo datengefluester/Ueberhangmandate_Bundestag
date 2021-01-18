@@ -188,7 +188,7 @@ graph_historic_size %>%
 ![](README_figs/Historic_Parliament_Size_graph-1.png)<!-- -->
 
 ``` r
-ggsave("./HP_pic/Historic_Parliament_Size_graph.jpg",width=4, height=3)
+ggsave("./pictures/Historic_Parliament_Size_graph.jpg",width=4, height=3)
 ```
 
 ## Overview of Überhangmandaten for Parties
@@ -226,7 +226,7 @@ ggsave("./HP_pic/Historic_Parliament_Size_graph.jpg",width=4, height=3)
                   na.strings="")
   
 # keep raw data as backup
-  write.csv(raw,"raw.csv", row.names = TRUE)
+  write.csv(raw,"./data/raw.csv", row.names = TRUE)
 ```
 
 ### clean up raw data
@@ -292,7 +292,7 @@ cleaned <- cleaned %>% rename_all(
   funs(str_replace(., "Alternative für Deutschland", "AFD")))
 
 #export clean data set as backup
-  write.csv(cleaned,"cleaned.csv", row.names = TRUE)
+  write.csv(cleaned,"./data/cleaned.csv", row.names = TRUE)
 ```
 
 ### Check to see if all counties included
@@ -628,15 +628,14 @@ slower. If you have time to spare, feel free to modify the code.
 # (p.6)  
   nrw <- data.frame(partei=c("CDU","SPD","LINKE","GRÜNE","CSU","FDP","AFD"),
                     mandates=c(43,35,10,10,0,17,13))
-
+  nrw$partei <- as.character(nrw$partei)
+  
  parties_NRW %>% 
                   select(1,6) %>%
                         all.equal(nrw)
 ```
 
-    ## [1] "Component \"partei\": Modes: character, numeric"                      
-    ## [2] "Component \"partei\": Attributes: < target is NULL, current is list >"
-    ## [3] "Component \"partei\": target is character, current is factor"
+    ## [1] TRUE
 
 ``` r
 # clean up
@@ -1003,18 +1002,6 @@ graph_margins <- rbind(graph_margins,margins_placeholder)
 # cleanup
   rm(loop_state,state,margins_placeholder,clean_up,
      ueberhang_placerholder,state) }
-```
-
-### Export individual state data frames
-
-``` r
-# export parties state data frames for dash board
-path <- "./state_parties/"
-lapply(parties_state, function(x) 
-  write.csv(get(x), 
-            paste(path,paste(x, "csv", sep="."),sep="") , 
-            row.names = FALSE))
-rm(path) 
 ```
 
 # Drop not needed data frames and values:
@@ -1541,7 +1528,7 @@ graph_dynamic_size %>%
                                 "180000"="180.000 \n (0,39%)",
                                 "240000"="240.000 \n (0.52%)"))  +
     labs(title = "Größe des Bundestages mit Ersttimmenverschiebung", 
-    subtitle="Stimmenverschiebung in 100.000. In Klammern: Prozentanteil an den gesamten Erststimmen",
+    subtitle="In Klammern: Prozentanteil an den gesamten Erststimmen",
     caption = "Quelle: Bundeswahlleiter, \n Eigene Berechnungen") +
     hp_theme() + 
     theme(axis.text= element_text(size= 7.5), 
@@ -1559,64 +1546,6 @@ graph_dynamic_size %>%
 ```
 
 ![](README_figs/dynamic_size_graph-1.png)<!-- -->
-
-### Margin by Party
-
-``` r
-ueberhangmandate %>%
-  filter(Wahlkreisname != "Election") %>%
-  select(mandate_actual, votes_needed) %>%
-  mutate(votes_needed = as.numeric(votes_needed)) %>%
-  group_by(mandate_actual) %>%
-        summarise_each( funs(mean, sd)) %>%
-        mutate(ci_low=mean-1.96*sd,
-               ci_high=mean+1.96*sd) %>%
-        ggplot() +
-        geom_pointrange(mapping=aes(x=reorder(mandate_actual, -mean), 
-                                    y=mean, 
-                                    ymin=ci_low, 
-                                    ymax=ci_high), 
-                                    color=c("#32302e","blue4","#E3000F")) +
-        
-        coord_flip() +
-        geom_hline(yintercept = 0, alpha=0.5) +
-        labs(title = "Unterschied nach Parteien", 
-    subtitle="XXX",
-    caption = "Quelle: Bundeswahlleiter, \n Eigene Berechnungen") +
-    hp_theme() + 
-    theme(axis.text= element_text(size= 7.5), 
-          axis.title.x = element_blank(), 
-          plot.title.position = "plot",  
-          axis.title.y = element_blank(), 
-          panel.grid.major.x = element_blank(), 
-          panel.grid.major.y = element_line(size= .2, color="#656565"), 
-          axis.line.x= element_line(size= .3, color="black"),
-          legend.position = "right", legend.key = element_blank(), 
-          axis.ticks.y = element_blank(), 
-          axis.ticks.x = element_line( size=.3, color="black"),
-          plot.caption= element_text(size=5, hjust = 1), 
-          axis.text.x= element_text(color="black"))
-```
-
-![](README_figs/margin_party_graph-1.png)<!-- -->
-
-### t-test
-
-``` r
-library(rstatix)
-ueberhangmandate %>%
-  filter(Wahlkreisname != "Election") %>%
-  select(mandate_actual, votes_needed) %>%
-  mutate(votes_needed = as.numeric(votes_needed)) %>% 
-pairwise_t_test(votes_needed ~ mandate_actual, p.adjust.method = "bonferroni")
-```
-
-    ## # A tibble: 3 x 9
-    ##   .y.          group1 group2    n1    n2      p p.signif  p.adj p.adj.signif
-    ## * <chr>        <chr>  <chr>  <int> <int>  <dbl> <chr>     <dbl> <chr>       
-    ## 1 votes_needed CDU    CSU       36     7 0.013  *        0.0389 *           
-    ## 2 votes_needed CDU    SPD       36     3 0.538  ns       1      ns          
-    ## 3 votes_needed CSU    SPD        7     3 0.0423 *        0.127  ns
 
 ### Creating GIF
 
@@ -1688,6 +1617,9 @@ gif <- gif %>%
    mutate(States = str_replace(States,"20.0000","200.000")) 
 
 
+
+
+
 # define colors for parties
 Colors <-c("CSU" = "blue4",
            "CDU" = "#32302e",
@@ -1730,12 +1662,45 @@ p <-  ggplot(data=gif, aes(x=long, y=lat, group=group))+
       plot.subtitle = element_text(size= rel(0.7)),
       plot.caption = element_text(size = rel(0.6)))
 
-graph <- p + transition_states(States,
+p_gif <- p + transition_states(States,
                                transition_length = 2,
                                state_length = 1)
-animate(graph, height = 800, width =800)
+animate(p_gif, height = 800, width =800)
 ```
 
 ![](README_figs/gif-1.gif)<!-- -->
 
+``` r
+# https://stackoverflow.com/questions/60022521/using-gganimate-with-geom-point-and-geom-line
+
+#p <- graph_dynamic_size %>%
+#  ggplot(aes(x=as.factor(`cummulative_votes`), y=`final_size`,group=1)) +
+#      geom_point(aes(group = seq_along(`cummulative_votes`)), color = "orange", size = 4) +
+#      geom_line(aes(group=1), color="#009E73") +
+#      transition_reveal(`cummulative_votes`)+
+#      geom_hline(aes(yintercept=709),alpha=0.6) 
+#animate(p)
+#library(gganimate)
+```
+
+### Exporting all data frames for graphs
+
+``` r
+path <- "./data/"
+exports <- c("graph_dynamic_size","graph_historic_size","graph_margins","Historic_Parliament_Size","map_actual_election","map_optimized_election")
+lapply(exports, function(x) 
+  write.csv(get(x), 
+            paste(path,paste(x, "csv", sep="."),sep="") , 
+            row.names = FALSE))
+ rm(path,exports) 
+```
+
 ### Finalising the data set for Shiny Dashboard
+
+``` r
+dashboard <- map_optimized_election %>% 
+  mutate(Wahlkreisnummer=as.character(Wahlkreisnummer)) %>% 
+  left_join(.,ueberhangmandate) %>% 
+  mutate(Ueberhang=ifelse(votes_needed==0,1,0)) 
+write.csv(dashboard,"./data/dashboard.csv", row.names = TRUE)
+```
