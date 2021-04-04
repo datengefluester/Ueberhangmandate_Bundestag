@@ -168,27 +168,19 @@ graph_historic_size %>%
                                 "2010"="10", "2020"="20"),
                         expand = c(0, 0)) +
     labs(title = "Historische Entwicklung der Größe des Bundestages",
-         caption = "Quelle: Bundeswahlleiter \n*Seit 2003") +
-    geom_text(data = data.frame(x = 1945, y = 800, 
-                      label = "800 \nSitze"), mapping = aes(x = x, y = y, 
-                                                             label = label), 
-                      inherit.aes = FALSE, size=2, color="black", hjust=0) +
-    geom_text(data = data.frame(x = 1945, y = 710, 
-                      label = "700"), mapping = aes(x = x, y = y, label = label), 
-                      inherit.aes = FALSE, size=2, color="black", hjust=0) +
-    geom_text(data = data.frame(x = 1945, y = 598, 
-                      label = "598 \n(Normgröße*)"), mapping = aes(x = x, y = y, 
-                                                                   label = label), 
-                      inherit.aes = FALSE, size=2, color="black", hjust=0) +
-    geom_text(data = data.frame(x = 1945, y = 510, 
-                      label = "500"), mapping = aes(x = x, y = y, label = label), 
-                      inherit.aes = FALSE, size=2, color="black", hjust=0) +
-    geom_text(data = data.frame(x = 1945, y = 410, 
-                      label = "400"), mapping = aes(x = x, y = y, label = label), 
-                      inherit.aes = FALSE, size=2, color="black", hjust=0) +
-    geom_text(data = data.frame(x = 1945.5, y = 350, 
-                      label = "\u03df"), mapping = aes(x = x, y = y, label = label), 
-                      inherit.aes = FALSE, size=2, color="black", hjust=0) +
+         caption = "*Seit 2003\n Quelle: Bundeswahlleiter") +
+    annotate("text", x = 1945, y = 800,label = "800 \nSitze", 
+             size=2, color="black", hjust=0) + 
+    annotate("text", x = 1945, y = 710,label = "700", 
+             size=2, color="black", hjust=0) +
+    annotate("text", x = 1945, y = 598,label = "598 \n(Normgröße*)", 
+             size=2, color="black", hjust=0) +
+    annotate("text", x = 1945, y = 510,label = "500", 
+             size=2, color="black", hjust=0) +
+    annotate("text", x = 1945, y = 410,label = "400", 
+             size=2, color="black", hjust=0) +
+    annotate("text", x = 1945.5, y = 350,label = "\u03df", 
+             size=2, color="black", hjust=0) +
     hp_theme() + 
     theme(axis.text= element_text(size= 7.5, color="black"), 
           axis.title.x = element_blank(), 
@@ -406,8 +398,11 @@ ggplot(data=map_actual_election,
     geom_polygon(data=shp_wahlkreise, 
                  aes(x = long, y = lat, group = group), 
                  fill = NA, 
-                 color = "#656565", 
-                 size = 0.4) +
+                 color = "white", 
+                 size = 0.025) +
+  geom_polygon(data=shp_bund, 
+               aes(x=long, y=lat, group=group), 
+               fill=NA, color="white", size=0.1) +
     scale_fill_manual(values=c("blue4","#32302e", "royalblue1", 
                                "#46962b", "magenta1", "#E3000F")) +
     labs(title = "Direktmandate Bundestagswahl 2017", 
@@ -425,18 +420,20 @@ ggplot(data=map_actual_election,
       panel.border=element_blank(),
       panel.grid.major=element_blank(),
       panel.grid.minor=element_blank(),
-      plot.title = element_text(size = rel(0.5)),
-      plot.caption = element_text(size = rel(0.3)),
+      plot.title = element_text(size = rel(0.4), margin=unit(c(-1,0,-1,0), "line")),
+      legend.margin= margin(t = -1, unit='line'),
+      plot.caption = element_text(size = rel(0.2)),
       legend.key = element_blank(),
-      legend.key.size = unit(0.5,"line"),
+      legend.key.size = unit(0.25,"line"),
       legend.title = element_blank(),
-      legend.text = element_text(size = rel(0.3), color="black")) 
+      legend.text = element_text(size = rel(0.2), color="black")
+      ) 
 ```
 
 ![](README_figs/map_actual_election-1.png)<!-- -->
 
 ``` r
-ggsave("./pictures/map_actual_election.jpg", width=3, height=4)
+ggsave("./pictures/map_actual_election.jpg", width=2, height=2.7)
 ```
 
 # State Data Frames
@@ -989,7 +986,7 @@ graph_margins <- rbind(graph_margins,margins_placeholder)
      ueberhang_placerholder,state) }
 ```
 
-# Drop not needed data frames and values:
+# Drop data frames and values, which are not needed anymore:
 
 ``` r
 # drop data frames for counties and states
@@ -1100,19 +1097,19 @@ map_optimized_election<- merge(shp_wahlkreise,
 # map
   ggplot(data=map_optimized_election, aes(x=long, y=lat, group=group))+
     geom_polygon(aes(fill=change), show.legend = T) +
-    geom_polygon(data=shp_wahlkreise, 
-                 aes(x=long, y=lat, group=group), 
-                 fill=NA, color="#656565", size=0.1) +
-  geom_polygon(data=shp_wahlkreise, 
-               aes(x = long, y = lat, group = group), 
-               fill = NA, 
-               color = "#656565", 
-               size = 0.4) +
+geom_polygon(data=shp_wahlkreise, 
+                 aes(x = long, y = lat, group = group), 
+                 fill = NA, 
+                 color = "white", 
+                 size = 0.025) +
+  geom_polygon(data=shp_bund, 
+               aes(x=long, y=lat, group=group), 
+               fill=NA, color="white", size=0.1) +
     scale_fill_manual(values=c("blue4","#32302e", "royalblue1", 
                                "#46962b", "magenta1", "#E3000F"),             
                       name="Neues Direktmandat",
                       na.translate = F) +
-    labs(title = "Direktmandate nach \nStimmenverschiebung", 
+    labs(title = "Direktmandate nach Stimmenverschiebung", 
          caption = "Quelle: Bundeswahlleiter \nEigene Berechnungen")+
     coord_map() + # apply projection
     hp_theme() +
@@ -1127,18 +1124,20 @@ map_optimized_election<- merge(shp_wahlkreise,
       panel.border=element_blank(),
       panel.grid.major=element_blank(),
       panel.grid.minor=element_blank(),
-      plot.title = element_text(size = rel(0.5)),
-      plot.caption = element_text(size = rel(0.3)),
+      plot.title = element_text(size = rel(0.4), margin=unit(c(-1,0,-1,0), "line")),
+      legend.margin= margin(t = -1, unit='line'),
+      plot.caption = element_text(size = rel(0.2)),
       legend.key = element_blank(),
-      legend.key.size = unit(0.5,"line"),
+      legend.key.size = unit(0.25,"line"),
       legend.title = element_blank(),
-      legend.text = element_text(size = rel(0.3), color="black")) 
+      legend.text = element_text(size = rel(0.2), color="black")
+      ) 
 ```
 
 ![](README_figs/optimized_election_map-1.png)<!-- -->
 
 ``` r
-ggsave("./pictures/optimized_election_map_pic.jpg",width=3, height=4)
+ggsave("./pictures/optimized_election_map_pic.jpg", width=2, height=2.7)
 ```
 
 ## Distribution of size of counties by Erststimmen cast
@@ -1157,21 +1156,16 @@ distribution <- cleaned %>%
                             limits = c(0, 1.05),
                             breaks = c(seq(0.25, 1, 0.25)),
                             expand = c(0, 0)) +
-      geom_text(data = data.frame(x = 210000, y = 1.025, label = "100%"), 
-              mapping = aes(x = x, y = y, label = label, hjust=0.6), 
-                      inherit.aes = FALSE, size=2, color="black") +
-      geom_text(data = data.frame(x = 210000, y = 0.975, label = "der Wahlkreise"), 
-              mapping = aes(x = x, y = y, label = label, hjust=0.85), 
-                      inherit.aes = FALSE, size=2, color="black") +
-      geom_text(data = data.frame(x = 210000, y = 0.775, label = "75"), 
-              mapping = aes(x = x, y = y, label = label, hjust=0.2), 
-                      inherit.aes = FALSE, size=2, color="black") +
-      geom_text(data = data.frame(x = 210000, y = 0.525, label = "50"), 
-              mapping = aes(x = x, y = y, label = label, hjust=0.2), 
-                      inherit.aes = FALSE, size=2, color="black") +
-      geom_text(data = data.frame(x = 210000, y = 0.275, label = "25"), 
-              mapping = aes(x = x, y = y, label = label, hjust=0.2), 
-                      inherit.aes = FALSE, size=2, color="black") +
+    annotate("text", x = 210000, y = 1.025,label = "100%", 
+             size=2, color="black", hjust=0.6) +
+    annotate("text", x = 210000, y = 0.975,label = "der Wahlkreise", 
+             size=2, color="black", hjust=0.85) +
+    annotate("text", x = 210000, y = 0.775,label = "75", 
+             size=2, color="black", hjust=0.2) +
+    annotate("text", x = 210000, y = 0.525,label = "50", 
+             size=2, color="black", hjust=0.2) +
+    annotate("text", x = 210000, y = 0.275,label = "25", 
+             size=2, color="black", hjust=0.2) +
     labs(title = "Größe der Wahlkreise", 
          subtitle="nach abgegebenen gültigen Erststimmen oder weniger.") +
    coord_cartesian(clip = "off") +
@@ -1208,21 +1202,16 @@ margins <- graph_margins %>%
       scale_y_continuous(limits = c(0, 1.05),
                          breaks = c(seq(0.25, 1, 0.25)),
                          expand = c(0, 0)) +
-      geom_text(data = data.frame(x = 73500, y = 1.025, label = "100%"), 
-              mapping = aes(x = x, y = y, label = label, hjust=0.65), 
-                      inherit.aes = FALSE, size=2, color="black") +
-      geom_text(data = data.frame(x = 73500, y = 0.975, label = "der Wahlkreise"), 
-              mapping = aes(x = x, y = y, label = label, hjust=0.85), 
-                      inherit.aes = FALSE, size=2, color="black") +
-      geom_text(data = data.frame(x = 73500, y = 0.775, label = "75"), 
-              mapping = aes(x = x, y = y, label = label, hjust=0.2), 
-                      inherit.aes = FALSE, size=2, color="black") +
-      geom_text(data = data.frame(x = 73500, y = 0.525, label = "50"), 
-              mapping = aes(x = x, y = y, label = label, hjust=0.2), 
-                      inherit.aes = FALSE, size=2, color="black") +
-      geom_text(data = data.frame(x = 73500, y = 0.275, label = "25"), 
-              mapping = aes(x = x, y = y, label = label, hjust=0.2), 
-                      inherit.aes = FALSE, size=2, color="black") +
+      annotate("text", x = 73500, y = 1.025,label = "100%", 
+             size=2, color="black", hjust=0.65) +
+      annotate("text", x = 73500, y = 0.975,label = "der Wahlkreise", 
+             size=2, color="black", hjust=0.85) +
+      annotate("text", x = 73500, y = 0.775,label = "75", 
+             size=2, color="black", hjust=0.2) +
+      annotate("text", x = 73500, y = 0.525,label = "50", 
+             size=2, color="black", hjust=0.2) +
+      annotate("text", x = 73500, y = 0.275,label = "25", 
+             size=2, color="black", hjust=0.2) +
       scale_x_continuous(breaks =c(seq(0, 70000, 17000)),
                          labels=c("0"="0","17000"="17","34000"="34",
                                  "51000"="51","70000"="70.000")) +
@@ -1595,43 +1584,34 @@ graph_dynamic_size %>%
                                      limits = c(570, 735),
                                      breaks = c(598,625,650,675,700,725), 
                                     expand = c(0, 0)) +
-                geom_text(data = data.frame(x = 260000, y = 729, label = "725"), 
-                          mapping = aes(x = x, y = y, label = label, hjust=1), 
-                          inherit.aes = FALSE, size=2, color="black") +
-                 geom_text(data = data.frame(x = 260000, y = 721, label = "Sitze"), 
-                          mapping = aes(x = x, y = y, label = label, hjust=1), 
-                          inherit.aes = FALSE, size=2, color="black") +
-                geom_text(data = data.frame(x = 260000, y = 704, label = "700"), 
-                          mapping = aes(x = x, y = y, label = label, hjust=1), 
-                          inherit.aes = FALSE, size=2, color="black") +
-                geom_text(data = data.frame(x = 260000, y = 679, label = "675"), 
-                          mapping = aes(x = x, y = y, label = label, hjust=1), 
-                          inherit.aes = FALSE, size=2, color="black") +
-                geom_text(data = data.frame(x = 260000, y = 653, label = "650"), 
-                          mapping = aes(x = x, y = y, label = label, hjust=1), 
-                          inherit.aes = FALSE, size=2, color="black") +
-                geom_text(data = data.frame(x = 260000, y = 629, label = "625"), 
-                          mapping = aes(x = x, y = y, label = label, hjust=1), 
-                          inherit.aes = FALSE, size=2, color="black") +
-                geom_text(data = data.frame(x = 260000, y = 602, label = "598"), 
-                          mapping = aes(x = x, y = y, label = label, hjust=1), 
-                          inherit.aes = FALSE, size=2, color="black") +
-                geom_text(data = data.frame(x = 260000, y = 593, label = "(Normgröße)"), 
-                          mapping = aes(x = x, y = y, label = label, hjust=1), 
-                          inherit.aes = FALSE, size=2, color="black") +
-                geom_text(data = data.frame(x = 256000, y = 580, 
-                      label = "\u03df"), mapping = aes(x = x, y = y, label = label), 
-                      inherit.aes = FALSE, size=2, color="black") +
-                scale_x_continuous(breaks = sort(c(seq(0, 240000, 
+         annotate("text", x = 260000, y = 729,label = "725", 
+             size=2, color="black", hjust=1) +
+         annotate("text", x = 260000, y = 721,label = "Sitze", 
+             size=2, color="black", hjust=1) +
+        annotate("text", x = 260000, y = 704,label = "700", 
+             size=2, color="black", hjust=1) +
+        annotate("text", x = 260000, y = 679,label = "675", 
+             size=2, color="black", hjust=1) +
+        annotate("text", x = 260000, y = 653,label = "650", 
+             size=2, color="black", hjust=1) +
+        annotate("text", x = 260000, y = 629,label = "625", 
+             size=2, color="black", hjust=1) +
+        annotate("text", x = 260000, y = 602,label = "598", 
+             size=2, color="black", hjust=1) +
+        annotate("text", x = 260000, y = 593,label = "(Normgröße)", 
+             size=2, color="black", hjust=1) +
+        annotate("text", x = 256000, y = 580,label = "\u03df", 
+             size=2, color="black", hjust=1) +
+            scale_x_continuous(breaks = sort(c(seq(0, 240000, 
                                                          by = 60000))),
                        limits=c(-5000,260000),
                        expand = c(0, 0),
-                       labels=c("0"="0","60000"="60 \n (0,13%)",
-                                "120000"="120 \n (0,26%)",
-                                "180000"="180 \n (0,39%)",
-                                "240000"="240.000 \n (0.52%)"))  +
+                       labels=c("0"="0","60000"="60",
+                                "120000"="120",
+                                "180000"="180",
+                                "240000"="240.000"))  +
     labs(title = "Größe des Bundestages nach Ersttimmenverschiebung", 
-    subtitle="Erststimmenverschiebung in 100.00 (Prozentanteil an den gesamten Erststimmen)",
+    subtitle="in 1.000",
     caption = "Quelle: Bundeswahlleiter, \n Eigene Berechnungen") +
     hp_theme() + 
     theme(axis.text= element_text(size= 7.5), 
@@ -1747,7 +1727,7 @@ gif$States <- factor(gif$States, levels=level)
 p_gif <-  gif %>% 
   ggplot(aes(x=long, y=lat, group=group))+
    geom_polygon(aes(fill=mandate_map), show.legend = T) +
-   geom_polygon(data=shp_wahlkreise, 
+      geom_polygon(data=shp_wahlkreise, 
                aes(x=long, y=lat, group=group), 
                fill=NA, color="#656565", size=0.1) +
   geom_polygon(data=shp_bund, 
@@ -1759,7 +1739,6 @@ p_gif <-  gif %>%
      labs(title = "Überhangmandate", 
          subtitle="Wählerstimmen verändert: {closest_state}",
          caption = "Quelle: Bundeswahlleiter \n Eigene Berechnungen")+
-    coord_map() + # apply projection
     hp_theme() +
     theme(axis.line=element_blank(),
       axis.text.x=element_blank(),
@@ -1778,8 +1757,8 @@ p_gif <-  gif %>%
 
 p_gif <- p_gif + transition_states(States,
                                transition_length = 5,
-                               state_length = 20)
-animate(p_gif, height = 800, width = 800)
+                               state_length = 40)
+animate(p_gif, height = 800, width = 1080)
 ```
 
 ![](README_figs/gif-1.gif)<!-- -->

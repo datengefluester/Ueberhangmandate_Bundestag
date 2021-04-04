@@ -1,0 +1,300 @@
+"district_number","district_name","state","mandate_actual","mandate_optimized","votes_needed","votes_halved"
+1,"Flensburg – Schleswig","sch","cdu","cdu",0,0
+2,"Nordfriesland – Dithmarschen Nord","sch","cdu","cdu",0,0
+3,"Steinburg – Dithmarschen Süd","sch","cdu","cdu",0,0
+4,"Rendsburg-Eckernförde","sch","cdu","cdu",0,0
+5,"Kiel","sch","spd","spd",0,0
+6,"Plön – Neumünster","sch","cdu","spd",15381,7691
+7,"Pinneberg","sch","cdu","cdu",0,0
+8,"Segeberg – Stormarn-Mitte","sch","cdu","cdu",0,0
+9,"Ostholstein – Stormarn-Nord","sch","cdu","spd",14764,7382
+10,"Herzogtum Lauenburg – Stormarn-Süd","sch","cdu","cdu",0,0
+11,"Lübeck","sch","cdu","spd",1854,927
+18,"Hamburg-Mitte","ham","spd","spd",0,0
+19,"Hamburg-Altona","ham","spd","cdu",4372,2186
+20,"Hamburg-Eimsbüttel","ham","spd","cdu",4504,2252
+21,"Hamburg-Nord","ham","cdu","cdu",0,0
+22,"Hamburg-Wandsbek","ham","spd","spd",0,0
+23,"Hamburg-Bergedorf – Harburg","ham","spd","spd",0,0
+24,"Aurich – Emden","nds","spd","spd",0,0
+25,"Unterems","nds","cdu","cdu",0,0
+26,"Friesland – Wilhelmshaven – Wittmund","nds","spd","spd",0,0
+27,"Oldenburg – Ammerland","nds","spd","spd",0,0
+28,"Delmenhorst – Wesermarsch – Oldenburg-Land","nds","cdu","cdu",0,0
+29,"Cuxhaven – Stade II","nds","cdu","cdu",0,0
+30,"Stade I – Rotenburg II","nds","cdu","cdu",0,0
+31,"Mittelems","nds","cdu","cdu",0,0
+32,"Cloppenburg – Vechta","nds","cdu","cdu",0,0
+33,"Diepholz – Nienburg I","nds","cdu","cdu",0,0
+34,"Osterholz – Verden","nds","cdu","cdu",0,0
+35,"Rotenburg I – Heidekreis","nds","spd","spd",0,0
+36,"Harburg","nds","cdu","cdu",0,0
+37,"Lüchow-Dannenberg – Lüneburg","nds","cdu","cdu",0,0
+38,"Osnabrück-Land","nds","cdu","cdu",0,0
+39,"Stadt Osnabrück","nds","cdu","cdu",0,0
+40,"Nienburg II – Schaumburg","nds","cdu","cdu",0,0
+41,"Stadt Hannover I","nds","spd","spd",0,0
+42,"Stadt Hannover II","nds","spd","spd",0,0
+43,"Hannover-Land I","nds","cdu","cdu",0,0
+44,"Celle – Uelzen","nds","cdu","cdu",0,0
+45,"Gifhorn – Peine","nds","spd","spd",0,0
+46,"Hameln-Pyrmont – Holzminden","nds","spd","spd",0,0
+47,"Hannover-Land II","nds","spd","spd",0,0
+48,"Hildesheim","nds","spd","spd",0,0
+49,"Salzgitter – Wolfenbüttel","nds","spd","spd",0,0
+50,"Braunschweig","nds","spd","spd",0,0
+51,"Helmstedt – Wolfsburg","nds","spd","spd",0,0
+52,"Goslar – Northeim – Osterode","nds","cdu","cdu",0,0
+53,"Göttingen","nds","spd","spd",0,0
+54,"Bremen I","bre","spd","cdu",10744,5372
+55,"Bremen II – Bremerhaven","bre","spd","spd",0,0
+87,"Aachen I","nrw","cdu","cdu",0,0
+88,"Aachen II","nrw","spd","spd",0,0
+89,"Heinsberg","nrw","cdu","cdu",0,0
+90,"Düren","nrw","cdu","cdu",0,0
+91,"Rhein-Erft-Kreis I","nrw","cdu","cdu",0,0
+92,"Euskirchen – Rhein-Erft-Kreis II","nrw","cdu","cdu",0,0
+93,"Köln I","nrw","cdu","cdu",0,0
+94,"Köln II","nrw","cdu","cdu",0,0
+95,"Köln III","nrw","spd","spd",0,0
+96,"Bonn","nrw","spd","spd",0,0
+97,"Rhein-Sieg-Kreis I","nrw","cdu","cdu",0,0
+98,"Rhein-Sieg-Kreis II","nrw","cdu","cdu",0,0
+99,"Oberbergischer Kreis","nrw","cdu","cdu",0,0
+100,"Rheinisch-Bergischer Kreis","nrw","cdu","cdu",0,0
+101,"Leverkusen – Köln IV","nrw","spd","spd",0,0
+102,"Wuppertal I","nrw","spd","spd",0,0
+103,"Solingen – Remscheid – Wuppertal II","nrw","cdu","cdu",0,0
+104,"Mettmann I","nrw","cdu","cdu",0,0
+105,"Mettmann II","nrw","cdu","cdu",0,0
+106,"Düsseldorf I","nrw","cdu","cdu",0,0
+107,"Düsseldorf II","nrw","cdu","cdu",0,0
+108,"Neuss I","nrw","cdu","cdu",0,0
+109,"Mönchengladbach","nrw","cdu","cdu",0,0
+110,"Krefeld I – Neuss II","nrw","cdu","cdu",0,0
+111,"Viersen","nrw","cdu","cdu",0,0
+112,"Kleve","nrw","cdu","cdu",0,0
+113,"Wesel I","nrw","cdu","cdu",0,0
+114,"Krefeld II – Wesel II","nrw","cdu","cdu",0,0
+115,"Duisburg I","nrw","spd","spd",0,0
+116,"Duisburg II","nrw","spd","spd",0,0
+117,"Oberhausen – Wesel III","nrw","spd","spd",0,0
+118,"Mülheim – Essen I","nrw","spd","spd",0,0
+119,"Essen II","nrw","spd","spd",0,0
+120,"Essen III","nrw","cdu","cdu",0,0
+121,"Recklinghausen I","nrw","spd","spd",0,0
+122,"Recklinghausen II","nrw","spd","spd",0,0
+123,"Gelsenkirchen","nrw","spd","spd",0,0
+124,"Steinfurt I – Borken I","nrw","cdu","cdu",0,0
+125,"Bottrop – Recklinghausen III","nrw","spd","spd",0,0
+126,"Borken II","nrw","cdu","cdu",0,0
+127,"Coesfeld – Steinfurt II","nrw","cdu","cdu",0,0
+128,"Steinfurt III","nrw","cdu","cdu",0,0
+129,"Münster","nrw","cdu","cdu",0,0
+130,"Warendorf","nrw","cdu","cdu",0,0
+131,"Gütersloh I","nrw","cdu","cdu",0,0
+132,"Bielefeld – Gütersloh II","nrw","spd","spd",0,0
+133,"Herford – Minden-Lübbecke II","nrw","spd","spd",0,0
+134,"Minden-Lübbecke I","nrw","spd","spd",0,0
+135,"Lippe I","nrw","cdu","cdu",0,0
+136,"Höxter – Lippe II","nrw","cdu","cdu",0,0
+137,"Paderborn – Gütersloh III","nrw","cdu","cdu",0,0
+138,"Hagen – Ennepe-Ruhr-Kreis I","nrw","spd","spd",0,0
+139,"Ennepe-Ruhr-Kreis II","nrw","spd","spd",0,0
+140,"Bochum I","nrw","spd","spd",0,0
+141,"Herne – Bochum II","nrw","spd","spd",0,0
+142,"Dortmund I","nrw","spd","spd",0,0
+143,"Dortmund II","nrw","spd","spd",0,0
+144,"Unna I","nrw","spd","spd",0,0
+145,"Hamm – Unna II","nrw","spd","spd",0,0
+146,"Soest","nrw","cdu","cdu",0,0
+147,"Hochsauerlandkreis","nrw","cdu","cdu",0,0
+148,"Siegen-Wittgenstein","nrw","cdu","cdu",0,0
+149,"Olpe – Märkischer Kreis I","nrw","cdu","cdu",0,0
+150,"Märkischer Kreis II","nrw","spd","spd",0,0
+167,"Waldeck","hes","spd","spd",0,0
+168,"Kassel","hes","spd","spd",0,0
+169,"Werra-Meißner – Hersfeld-Rotenburg","hes","spd","spd",0,0
+170,"Schwalm-Eder","hes","spd","spd",0,0
+171,"Marburg","hes","spd","spd",0,0
+172,"Lahn-Dill","hes","cdu","cdu",0,0
+173,"Gießen","hes","cdu","cdu",0,0
+174,"Fulda","hes","cdu","cdu",0,0
+175,"Main-Kinzig – Wetterau II – Schotten","hes","cdu","cdu",0,0
+176,"Hochtaunus","hes","cdu","cdu",0,0
+177,"Wetterau I","hes","cdu","cdu",0,0
+178,"Rheingau-Taunus – Limburg","hes","cdu","cdu",0,0
+179,"Wiesbaden","hes","cdu","cdu",0,0
+180,"Hanau","hes","cdu","cdu",0,0
+181,"Main-Taunus","hes","cdu","cdu",0,0
+182,"Frankfurt am Main I","hes","cdu","spd",4959,2480
+183,"Frankfurt am Main II","hes","cdu","cdu",0,0
+184,"Groß-Gerau","hes","cdu","spd",3621,1811
+185,"Offenbach","hes","cdu","cdu",0,0
+186,"Darmstadt","hes","cdu","spd",1774,887
+187,"Odenwald","hes","cdu","cdu",0,0
+188,"Bergstraße","hes","cdu","cdu",0,0
+197,"Neuwied","rhn","cdu","cdu",0,0
+198,"Ahrweiler","rhn","cdu","cdu",0,0
+199,"Koblenz","rhn","cdu","cdu",0,0
+200,"Mosel/Rhein-Hunsrück","rhn","cdu","cdu",0,0
+201,"Kreuznach","rhn","cdu","spd",7602,3801
+202,"Bitburg","rhn","cdu","cdu",0,0
+203,"Trier","rhn","cdu","spd",6328,3164
+204,"Montabaur","rhn","cdu","cdu",0,0
+205,"Mainz","rhn","cdu","cdu",0,0
+206,"Worms","rhn","cdu","cdu",0,0
+207,"Ludwigshafen/Frankenthal","rhn","cdu","spd",428,214
+208,"Neustadt – Speyer","rhn","cdu","cdu",0,0
+209,"Kaiserslautern","rhn","spd","spd",0,0
+210,"Pirmasens","rhn","cdu","cdu",0,0
+211,"Südpfalz","rhn","cdu","cdu",0,0
+258,"Stuttgart I","bad","cdu","greens",3688,1844
+259,"Stuttgart II","bad","cdu","spd",20697,10349
+260,"Böblingen","bad","cdu","cdu",0,0
+261,"Esslingen","bad","cdu","cdu",0,0
+262,"Nürtingen","bad","cdu","cdu",0,0
+263,"Göppingen","bad","cdu","spd",21162,10581
+264,"Waiblingen","bad","cdu","cdu",0,0
+265,"Ludwigsburg","bad","cdu","cdu",0,0
+266,"Neckar-Zaber","bad","cdu","cdu",0,0
+267,"Heilbronn","bad","cdu","spd",22136,11068
+268,"Schwäbisch Hall – Hohenlohe","bad","cdu","cdu",0,0
+269,"Backnang – Schwäbisch Gmünd","bad","cdu","cdu",0,0
+270,"Aalen – Heidenheim","bad","cdu","cdu",0,0
+271,"Karlsruhe-Stadt","bad","cdu","spd",7897,3949
+272,"Karlsruhe-Land","bad","cdu","cdu",0,0
+273,"Rastatt","bad","cdu","cdu",0,0
+274,"Heidelberg","bad","cdu","spd",11800,5900
+275,"Mannheim","bad","cdu","spd",2017,1009
+276,"Odenwald – Tauber","bad","cdu","cdu",0,0
+277,"Rhein-Neckar","bad","cdu","spd",20902,10451
+278,"Bruchsal – Schwetzingen","bad","cdu","cdu",0,0
+279,"Pforzheim","bad","cdu","cdu",0,0
+280,"Calw","bad","cdu","cdu",0,0
+281,"Freiburg","bad","cdu","greens",4141,2071
+282,"Lörrach – Müllheim","bad","cdu","cdu",0,0
+283,"Emmendingen – Lahr","bad","cdu","spd",23004,11502
+284,"Offenburg","bad","cdu","cdu",0,0
+285,"Rottweil – Tuttlingen","bad","cdu","cdu",0,0
+286,"Schwarzwald-Baar","bad","cdu","cdu",0,0
+287,"Konstanz","bad","cdu","cdu",0,0
+288,"Waldshut","bad","cdu","spd",24006,12003
+289,"Reutlingen","bad","cdu","cdu",0,0
+290,"Tübingen","bad","cdu","cdu",0,0
+291,"Ulm","bad","cdu","cdu",0,0
+292,"Biberach","bad","cdu","cdu",0,0
+293,"Bodensee","bad","cdu","cdu",0,0
+294,"Ravensburg","bad","cdu","cdu",0,0
+295,"Zollernalb – Sigmaringen","bad","cdu","cdu",0,0
+212,"Altötting","bay","csu","csu",0,0
+213,"Erding – Ebersberg","bay","csu","csu",0,0
+214,"Freising","bay","csu","csu",0,0
+215,"Fürstenfeldbruck","bay","csu","csu",0,0
+216,"Ingolstadt","bay","csu","csu",0,0
+217,"München-Nord","bay","csu","spd",10743,5372
+218,"München-Ost","bay","csu","csu",0,0
+219,"München-Süd","bay","csu","spd",16021,8011
+220,"München-West/Mitte","bay","csu","spd",19731,9866
+221,"München-Land","bay","csu","csu",0,0
+222,"Rosenheim","bay","csu","csu",0,0
+223,"Bad Tölz-Wolfratshausen – Miesbach","bay","csu","csu",0,0
+224,"Starnberg – Landsberg am Lech","bay","csu","csu",0,0
+225,"Traunstein","bay","csu","csu",0,0
+226,"Weilheim","bay","csu","csu",0,0
+227,"Deggendorf","bay","csu","csu",0,0
+228,"Landshut","bay","csu","csu",0,0
+229,"Passau","bay","csu","csu",0,0
+230,"Rottal-Inn","bay","csu","csu",0,0
+231,"Straubing","bay","csu","csu",0,0
+232,"Amberg","bay","csu","csu",0,0
+233,"Regensburg","bay","csu","csu",0,0
+234,"Schwandorf","bay","csu","csu",0,0
+235,"Weiden","bay","csu","csu",0,0
+236,"Bamberg","bay","csu","csu",0,0
+237,"Bayreuth","bay","csu","csu",0,0
+238,"Coburg","bay","csu","spd",22915,11458
+239,"Hof","bay","csu","csu",0,0
+240,"Kulmbach","bay","csu","csu",0,0
+241,"Ansbach","bay","csu","csu",0,0
+242,"Erlangen","bay","csu","csu",0,0
+243,"Fürth","bay","csu","csu",0,0
+244,"Nürnberg-Nord","bay","csu","spd",8272,4136
+245,"Nürnberg-Süd","bay","csu","spd",11890,5945
+246,"Roth","bay","csu","csu",0,0
+247,"Aschaffenburg","bay","csu","csu",0,0
+248,"Bad Kissingen","bay","csu","csu",0,0
+249,"Main-Spessart","bay","csu","csu",0,0
+250,"Schweinfurt","bay","csu","csu",0,0
+251,"Würzburg","bay","csu","csu",0,0
+252,"Augsburg-Stadt","bay","csu","spd",23484,11742
+253,"Augsburg-Land","bay","csu","csu",0,0
+254,"Donau-Ries","bay","csu","csu",0,0
+255,"Neu-Ulm","bay","csu","csu",0,0
+256,"Oberallgäu","bay","csu","csu",0,0
+257,"Ostallgäu","bay","csu","csu",0,0
+296,"Saarbrücken","sar","spd","spd",0,0
+297,"Saarlouis","sar","cdu","cdu",0,0
+298,"St. Wendel","sar","cdu","cdu",0,0
+299,"Homburg","sar","cdu","spd",3080,1540
+75,"Berlin-Mitte","ber","spd","spd",0,0
+76,"Berlin-Pankow","ber","linke","linke",0,0
+77,"Berlin-Reinickendorf","ber","cdu","cdu",0,0
+78,"Berlin-Spandau – Charlottenburg Nord","ber","spd","spd",0,0
+79,"Berlin-Steglitz-Zehlendorf","ber","cdu","cdu",0,0
+80,"Berlin-Charlottenburg-Wilmersdorf","ber","cdu","cdu",0,0
+81,"Berlin-Tempelhof-Schöneberg","ber","cdu","cdu",0,0
+82,"Berlin-Neukölln","ber","spd","spd",0,0
+83,"Berlin-Friedrichshain-Kreuzberg – Prenzlauer Berg Ost","ber","greens","greens",0,0
+84,"Berlin-Treptow-Köpenick","ber","linke","linke",0,0
+85,"Berlin-Marzahn-Hellersdorf","ber","linke","linke",0,0
+86,"Berlin-Lichtenberg","ber","linke","linke",0,0
+56,"Prignitz – Ostprignitz-Ruppin – Havelland I","bra","cdu","cdu",0,0
+57,"Uckermark – Barnim I","bra","cdu","cdu",0,0
+58,"Oberhavel – Havelland II","bra","cdu","cdu",0,0
+59,"Märkisch-Oderland – Barnim II","bra","cdu","cdu",0,0
+60,"Brandenburg an der Havel – Potsdam-Mittelmark I – Havelland III – Teltow-Fläming I","bra","cdu","cdu",0,0
+61,"Potsdam – Potsdam-Mittelmark II – Teltow-Fläming II","bra","spd","spd",0,0
+62,"Dahme-Spreewald – Teltow-Fläming III – Oberspreewald-Lausitz I","bra","cdu","cdu",0,0
+63,"Frankfurt (Oder) – Oder-Spree","bra","cdu","afd",7083,3542
+64,"Cottbus – Spree-Neiße","bra","cdu","afd",4079,2040
+65,"Elbe-Elster – Oberspreewald-Lausitz II","bra","cdu","afd",5803,2902
+12,"Schwerin – Ludwigslust-Parchim I – Nordwestmecklenburg I","mec","cdu","cdu",0,0
+13,"Ludwigslust-Parchim II – Nordwestmecklenburg II – Landkreis Rostock I","mec","cdu","spd",8748,4374
+14,"Rostock – Landkreis Rostock II","mec","cdu","linke",7721,3861
+15,"Vorpommern-Rügen – Vorpommern-Greifswald I","mec","cdu","cdu",0,0
+16,"Mecklenburgische Seenplatte I – Vorpommern-Greifswald II","mec","cdu","cdu",0,0
+17,"Mecklenburgische Seenplatte II – Landkreis Rostock III","mec","cdu","cdu",0,0
+151,"Nordsachsen","sac","cdu","cdu",0,0
+152,"Leipzig I","sac","cdu","cdu",0,0
+153,"Leipzig II","sac","linke","linke",0,0
+154,"Leipzig-Land","sac","cdu","cdu",0,0
+155,"Meißen","sac","cdu","cdu",0,0
+156,"Bautzen I","sac","afd","afd",0,0
+157,"Görlitz","sac","afd","afd",0,0
+158,"Sächsische Schweiz-Osterzgebirge","sac","afd","afd",0,0
+159,"Dresden I","sac","cdu","afd",4008,2004
+160,"Dresden II – Bautzen II","sac","cdu","cdu",0,0
+161,"Mittelsachsen","sac","cdu","afd",1403,702
+162,"Chemnitz","sac","cdu","afd",3695,1848
+163,"Chemnitzer Umland – Erzgebirgskreis II","sac","cdu","cdu",0,0
+164,"Erzgebirgskreis I","sac","cdu","cdu",0,0
+165,"Zwickau","sac","cdu","cdu",0,0
+166,"Vogtlandkreis","sac","cdu","cdu",0,0
+66,"Altmark","saa","cdu","cdu",0,0
+67,"Börde – Jerichower Land","saa","cdu","cdu",0,0
+68,"Harz","saa","cdu","cdu",0,0
+69,"Magdeburg","saa","cdu","spd",9144,4572
+70,"Dessau – Wittenberg","saa","cdu","cdu",0,0
+71,"Anhalt","saa","cdu","cdu",0,0
+72,"Halle","saa","cdu","spd",8637,4319
+73,"Burgenland – Saalekreis","saa","cdu","afd",13142,6571
+74,"Mansfeld","saa","cdu","afd",9861,4931
+189,"Eichsfeld – Nordhausen – Kyffhäuserkreis","thu","cdu","cdu",0,0
+190,"Eisenach – Wartburgkreis – Unstrut-Hainich-Kreis","thu","cdu","cdu",0,0
+191,"Jena – Sömmerda – Weimarer Land I","thu","cdu","cdu",0,0
+192,"Gotha – Ilm-Kreis","thu","cdu","afd",7423,3712
+193,"Erfurt – Weimar – Weimarer Land II","thu","cdu","cdu",0,0
+194,"Gera – Greiz – Altenburger Land","thu","cdu","afd",5422,2711
+195,"Saalfeld-Rudolstadt – Saale-Holzland-Kreis – Saale-Orla-Kreis","thu","cdu","afd",7417,3709
+196,"Suhl – Schmalkalden-Meiningen – Hildburghausen – Sonneberg","thu","cdu","cdu",0,0
