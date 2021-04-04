@@ -57,7 +57,7 @@ graph_historic_size <- read.csv("./data/graph_historic_size.csv")
 
 # graph
 graph_historic_size %>%
-  ggplot(aes(x = `Jahr`, y = `Mandates`, group = 1)) +
+  ggplot(aes(x = year, y = mandates, group = 1)) +
   geom_line(aes(group = 1), color = "#009E73") +
   geom_hline(aes(yintercept = 598)) +
   scale_y_continuous(
@@ -123,7 +123,7 @@ graph_distribution <- read.csv("./data/graph_distribution.csv")
 
 # graph
 distribution <- graph_distribution %>%
-  ggplot(aes(y = percent, x = `Wahlberechtigte.Erststimmen`)) +
+  ggplot(aes(y = percent_eligible_first_vote, x = eligible_first_vote)) +
   geom_smooth(span = 0.1, color = "#009E73") +
   scale_x_continuous(
     breaks = c(seq(160000, 260000, 25000)),
@@ -176,7 +176,7 @@ graph_margins <- read.csv("./data/graph_margins.csv")
 
 # graph
 margins <- graph_margins %>%
-  ggplot(aes(y = percent, x = margin)) +
+  ggplot(aes(y = percent_, x = margin)) +
   geom_smooth(span = 0.1, color = "#009E73") +
   scale_y_continuous(
     limits = c(0, 1.05),
@@ -254,7 +254,7 @@ graph_dynamic_size <- read.csv("./data/graph_dynamic_size.csv")
 
 # graph
 graph_dynamic_size %>%
-  ggplot(aes(x = `cummulative_votes`, y = `final_size`, group = 1)) +
+  ggplot(aes(x = cummulative_votes, y = final_size, group = 1)) +
   geom_line(aes(group = 1), color = "#009E73") +
   scale_y_continuous(
     position = "right",
@@ -333,13 +333,15 @@ map_actual_election <- read.csv("./data/map_actual_election.csv")
 
 # Relevel group factor
 map_actual_election <- map_actual_election %>% 
-  mutate(Partei = str_trim(Partei)) %>% 
-  mutate(Partei = factor(Partei, levels = c("CDU", "LINKE", "CSU", "GRÜNE", "SPD", "AFD")))
+  mutate(party = str_trim(party)) %>%
+  mutate(party = replace(party, party=="greens", "grüne")) %>% 
+  mutate(party = toupper(party)) %>% 
+  mutate(party = factor(party, levels = c("CDU", "LINKE", "CSU", "GRÜNE", "SPD", "AFD")))
 
 # map
 map_actual_election %>%
   ggplot(aes(x = long, y = lat, group = group)) +
-  geom_polygon(aes(fill = Partei),
+  geom_polygon(aes(fill = party),
                show.legend = T
   ) +
   geom_polygon(
@@ -369,14 +371,6 @@ map_actual_election %>%
 ggsave("./pictures/map_actual_election.jpg", width = 2, height = 2.7)
 
 
-
-
-
-
-
-
-
-
 ###############################################################################
 # Optimized Election Map
 ###############################################################################
@@ -387,6 +381,8 @@ map_optimized_election <- read.csv("./data/map_optimized_election.csv")
 # Relevel group factor
 map_optimized_election <- map_optimized_election %>% 
   mutate(change = str_trim(change)) %>% 
+  mutate(change = replace(change, change=="greens", "grüne")) %>% 
+  mutate(change = toupper(change)) %>% 
   mutate(change = factor(change, levels = c("CDU", "LINKE", "CSU", "GRÜNE", "SPD", "AFD")))
 
 
@@ -436,7 +432,7 @@ map_gif <- read.csv("./data/map_gif.csv")
 # create combination for each county with each number of votes ('states')
 # of the gif
 gif <- map_gif %>%
-  select(Wahlkreisnummer) %>%
+  select(district_number) %>%
   mutate(
     "1" = "0",
     "2" = 20000,
@@ -470,16 +466,16 @@ gif <- map_gif %>%
     size = replace(size, Votes == "220000", 619),
     size = replace(size, Votes == "240000", 619)
   ) %>%
-  full_join(., map_optimized_election)
+  full_join(., map_optimized_election, by = "district_number")
 
 
 # create data frame with all counties. Actual and optimized vote, cumulative
 # votes and size parliament
 gif <- graph_dynamic_size %>%
-  filter(Wahlkreisnummer != "Election") %>%
-  mutate(Wahlkreisnummer = as.numeric(Wahlkreisnummer)) %>%
+  filter(district_number != "Election") %>%
+  mutate(district_number = as.numeric(district_number)) %>%
   select(c(1, 8, 14)) %>%
-  right_join(gif, by = "Wahlkreisnummer") %>%
+  right_join(gif, by = "district_number") %>%
   mutate(cummulative_votes = replace(
     cummulative_votes,
     is.na(cummulative_votes),
@@ -522,13 +518,13 @@ gif$States <- factor(gif$States, levels = level)
 
 # define colors for parties
 Colors <- c(
-  "CSU" = "royalblue1",
-  "CDU" = "#32302e",
-  "GRÜNE" = "#46962b",
-  "LINKE" = "magenta1",
-  "SPD" = "#E3000F",
-  "AFD" = "blue4",
-  "FDP" = "#ffed00",
+  "csu" = "royalblue1",
+  "cdu" = "#32302e",
+  "greens" = "#46962b",
+  "linke" = "magenta1",
+  "spd" = "#E3000F",
+  "afd" = "blue4",
+  "fdp" = "#ffed00",
   "white" = "white"
 )
 

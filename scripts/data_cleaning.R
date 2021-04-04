@@ -986,50 +986,6 @@ for (state_number in 1:16) {
   )
 }
 
-
-
-#------------------------------------------------------------------------------
-
-all_parties <- data.frame()
-
-state <- parties_state %>% str_replace(".*_", "")
-
-for (state_names in 1:16) {
-  tmp <- get(parties_state[state_names])
-
-  all_parties <- tmp %>%
-    select(partei, mandates) %>%
-    mutate(Bundesland = state[state_names]) %>%
-    rename(list_mandate = mandates) %>%
-    rbind(all_parties) %>%
-    select(partei, Bundesland, list_mandate)
-
-  rm(tmp)
-}
-
-all_parties <- counties %>%
-  group_by(Bundesland, mandate_actual) %>%
-  tally() %>%
-  rename(
-    direct_mandate = n,
-    partei = mandate_actual
-  ) %>%
-  left_join(all_parties, ., by = c("partei", "Bundesland")) %>%
-  mutate(direct_mandate = replace(direct_mandate, is.na(direct_mandate), 0))
-
-tmp <- all_parties %>%
-  mutate(diff = list_mandate - direct_mandate) %>%
-  mutate(Ueberhang_neu = diff) %>%
-  mutate(Ueberhang_neu = replace(Ueberhang_neu, Ueberhang_neu < 0, 0)) %>%
-  mutate(Ueberhang_neu = replace(
-    Ueberhang_neu,
-    Ueberhang_neu > 3,
-    3
-  ))
-
-
-# use as mindestmandate as adjustments later on
-
 ###############################################################################
 # Some clean up
 ###############################################################################
@@ -1154,6 +1110,20 @@ for (row in 1:nrow(ueberhangmandate)) {
 }
 
 
+# reform 2020: only keep 3 ueberhangmandates per party per state
+
+# check no state has two parties with ueberhangmandates
+tmp <- unique(ueberhangmandate[c("state","mandate_actual")]) 
+duplicated(tmp$state)
+rm(tmp)
+
+# only keep three 
+ueberhangmandate_reform <- ueberhangmandate %>% 
+  group_by(state) %>%
+  slice_min(order_by = votes_needed, n =3)
+  
+
+
 ###############################################################################
 # Calculate the Size of German Parliament after 2017 Election
 ###############################################################################
@@ -1207,6 +1177,20 @@ party_second_vote_mandates <- left_join(
 rm(second_votes)
 
 
+# add reform ueberhang mandates as own data frame : replace number of ueberhangmandates
+reform_party_second_vote_mandates <- ueberhangmandate_reform %>% 
+  group_by(mandate_actual) %>% 
+  tally() %>% 
+  rename(party = mandate_actual) %>% 
+  left_join(party_second_vote_mandates, ., by = "party")
+
+reform_party_second_vote_mandates <- reform_party_second_vote_mandates %>% 
+  mutate(ueberhang_mandate = n) %>% 
+  select(-n) %>% 
+  mutate_all(~ replace(., is.na(.), 0)) %>% 
+  mutate(mandate_minimum = mandates_second_vote + ueberhang_mandate)
+
+
 #-------
 # create data frame for surveys (add survey data frame and adjust votes accordingly)
 #------
@@ -1230,14 +1214,20 @@ for (state_number in 1:16) {
 }
 
 # add direct mandates
+# (note: I assume that changes in direct mandates are unrelated to changes in 
+# second vote mandates)
 survey_mandates <- counties %>%
   group_by(state, mandate_actual) %>%
   tally() %>%
   rename(direct_mandates = n, party = mandate_actual) %>%
   left_join(survey_mandates, ., by = c("state", "party")) %>%
-  mutate_all(~ replace(., is.na(.), 0)) %>%
-  mutate(ueberhangmandate = direct_mandates - mandates_second_vote) %>%
-  mutate(ueberhangmandate = replace(ueberhangmandate, ueberhangmandate < 0, 0))
+  mutate_all(~ replace(., is.na(.), 0)) %>% 
+  mutate(ueberhangmandates = direct_mandates - mandates_second_vote) %>% 
+  mutate(ueberhangmandates = replace(ueberhangmandates, ueberhangmandates <0, 0))
+
+# create survey reform data frame
+reform_survey_mandates <- survey_mandates %>% 
+  mutate(ueberhangmandates = replace (ueberhangmandates, ueberhangmandates>3, 3))
 
 # get mandate and vote numbers
 survey_mandates <- survey_mandates %>%
@@ -1245,7 +1235,17 @@ survey_mandates <- survey_mandates %>%
   summarise(
     mandates_second_vote = sum(mandates_second_vote),
     second_votes = sum(second_votes_party),
-    ueberhang_mandate = sum(ueberhangmandate)
+    ueberhang_mandate = sum(ueberhangmandates)
+  ) %>%
+  mutate(mandate_minimum = mandates_second_vote + ueberhang_mandate) %>%
+  select(party, mandates_second_vote, ueberhang_mandate, mandate_minimum, second_votes)
+
+reform_survey_mandates <- reform_survey_mandates %>% 
+  group_by(party) %>%
+  summarise(
+    mandates_second_vote = sum(mandates_second_vote),
+    second_votes = sum(second_votes_party),
+    ueberhang_mandate = sum(ueberhangmandates)
   ) %>%
   mutate(mandate_minimum = mandates_second_vote + ueberhang_mandate) %>%
   select(party, mandates_second_vote, ueberhang_mandate, mandate_minimum, second_votes)
@@ -1279,21 +1279,21 @@ reform_survey_mandates <- size_calculation("reform_survey_mandates")
 party_second_vote_mandates <- size_calculation("party_second_vote_mandates")
 reform_party_second_vote_mandates <- size_calculation("reform_party_second_vote_mandates")
 
-# different sizes for the different szenarios:
+# different sizes for the different scenarios:
 
-sizes_scenarios <- data.frame()
+parliament_sizes_scenarios <- data.frame()
 
 scenarios <- c("survey_mandates","reform_survey_mandates","party_second_vote_mandates","reform_party_second_vote_mandates")
 
 for (scenario_df in scenarios){
 loop_df <- get(scenario_df)
-sizes_scenarios <- loop_df %>% 
+parliament_sizes_scenarios <- loop_df %>% 
   slice(1) %>% 
   select(final_size) %>% 
-  rename(size = final_size) %>% 
+  rename(parliament_size = final_size) %>% 
   mutate(scenario = scenario_df) %>% 
-  rbind(sizes_scenarios) %>% 
-  arrange(size)
+  rbind(parliament_sizes_scenarios) %>% 
+  arrange(parliament_size)
 }
 
 
@@ -1409,7 +1409,7 @@ ueberhangmandate <- ueberhangmandate %>%
  exports <- c(
    "graph_dynamic_size", "graph_historic_size", "graph_margins",
    "graph_distribution", "graph_historic_size", "map_actual_election",
-   "map_optimized_election", "map_gif", "sizes_scenarios"
+   "map_optimized_election", "map_gif", "parliament_sizes_scenarios"
  )
  lapply(exports, function(x) {
    write.csv(get(x),
@@ -1428,10 +1428,6 @@ ueberhangmandate <- ueberhangmandate %>%
    left_join(., ueberhangmandate, by = c("district_number", "district_name", "state", "mandate_actual", "mandate_optimized", "votes_needed", "votes_halved")) %>%
    mutate(Ueberhang = ifelse(votes_needed == 0, 1, 0))
  write.csv(dashboard, "./data/dashboard.csv", row.names = TRUE)
-
-
-
-
 
 
 ###############################################################################
