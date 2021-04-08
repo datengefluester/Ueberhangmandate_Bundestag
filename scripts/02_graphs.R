@@ -58,12 +58,12 @@ graph_historic_size <- read.csv("./data/graph_data/graph_historic_size.csv")
 # graph
 graph_historic_size %>%
   ggplot(aes(x = year, y = size, group = 1)) +
-  geom_line(aes(group = 1), color = "#009E73") +
-  geom_hline(aes(yintercept = 598)) +
+  geom_line(aes(group = 1), color = "#009E73", size = 0.65) +
+  geom_hline(yintercept = 598, size = 0.2, linetype='longdash', color = "black") + 
   scale_y_continuous(
     position = "right",
     limits = c(300, 820),
-    breaks = c(300, 400, 500, 598, 700, 800),
+    breaks = c(300, 400, 500, 700, 800),
     expand = c(0, 0)
   ) +
   scale_x_continuous(
@@ -81,16 +81,24 @@ graph_historic_size %>%
     caption = "*Seit 2003\n Quelle: Bundeswahlleiter"
   ) +
   annotate("text",
-    x = 1945, y = 800, label = "800 \nSitze",
+    x = 1945, y = 810, label = "800",
     size = 2, color = "black", hjust = 0
+  ) +
+  annotate("text",
+           x = 1945, y = 790, label = "Sitze",
+           size = 2, color = "black", hjust = 0
   ) +
   annotate("text",
     x = 1945, y = 710, label = "700",
     size = 2, color = "black", hjust = 0
   ) +
   annotate("text",
-    x = 1945, y = 598, label = "598 \n(Normgröße*)",
+    x = 1945, y = 608, label = "598",
     size = 2, color = "black", hjust = 0
+  ) +
+  annotate("text",
+           x = 1945, y = 588, label = "(Normgröße*)",
+           size = 2, color = "black", hjust = 0
   ) +
   annotate("text",
     x = 1945, y = 510, label = "500",
@@ -251,14 +259,14 @@ graph_dynamic_size <- read.csv("./data/graph_data/graph_dynamic_size.csv")
 # graph
 graph_dynamic_size %>%
   ggplot(aes(x = cummulative_votes, y = final_size, group = 1)) +
-  geom_line(aes(group = 1), color = "#009E73") +
+  geom_line(aes(group = 1), color = "#009E73", size = 0.65) +
+  geom_hline(yintercept = 598, size = 0.2, linetype='longdash', color = "black") + 
   scale_y_continuous(
     position = "right",
     limits = c(570, 735),
     breaks = c(625, 650, 675, 700, 725),
     expand = c(0, 0)
   ) +
-  geom_hline(yintercept = 598, linetype='dashed', size = 0.2, color = "#656565") + 
   annotate("text",
     x = 260000, y = 729, label = "725",
     size = 2, color = "black", hjust = 1
@@ -329,7 +337,10 @@ graph_parliament_sizes_scenarios %>%
   ggplot(aes(x = reorder(scenario, -scenario_number), y = parliament_size)) +
   geom_bar(stat = "identity", fill = "#1b9e77") +
   coord_flip() +
-  scale_x_discrete(labels = c('Umfrage INSA Reform','Umfrage INSA vom 29.3.2021','Reform Bundestagswahl \n 2017','Bundestagswahl 2017 ')) +
+  scale_x_discrete(labels = c('Umfrage INSA vom 29.3.2021 \nReform 2020',
+                              'Umfrage INSA vom 29.3.2021',
+                              'Bundestagswahl 2017 \nReform 2020',
+                              'Bundestagswahl 2017 ')) +
   scale_y_continuous(
     expand = c(0, 0),
     position = "right",
@@ -361,7 +372,8 @@ map_actual_election <- map_actual_election %>%
   mutate(party = toupper(party)) %>% 
   mutate(party = factor(party, levels = c("CDU", "LINKE", "CSU", "GRÜNE", "SPD", "AFD")))
 
-# map
+
+# whole Germany map
 map_actual_election %>%
   ggplot(aes(x = long, y = lat, group = group)) +
   geom_polygon(aes(fill = party),
@@ -379,6 +391,7 @@ map_actual_election %>%
     aes(x = long, y = lat, group = group),
     fill = NA, color = "white", size = 0.1
   ) +
+  
   scale_fill_manual(values = c(
     "#32302e", "magenta1", "royalblue1",
     "#46962b", "#E3000F", "blue4"
@@ -392,6 +405,9 @@ map_actual_election %>%
 
 # save map
 ggsave("./images/map_actual_election.jpg", width = 2, height = 2.7)
+
+
+
 
 
 ###############################################################################

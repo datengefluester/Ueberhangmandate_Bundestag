@@ -154,6 +154,7 @@ write.csv(raw, "./data/raw/raw.csv", row.names = TRUE)
 ### clean up raw data
 ###############################################################################
 
+raw <- read.csv("./data/raw/raw.csv", row.names = TRUE)
 # For now the data frame has no proper column names. Hence, I obtain party names
 # and have all names in row 6 so I can name variables in one line. Idea:
 # paste party names in front of second vote ("Zweitstimme");
@@ -824,8 +825,8 @@ counties <- data.frame(
   state = character(),
   mandate_actual = character(),
   mandate_optimized = character(),
-  votes_needed = numeric(),
-  votes_halved = numeric()
+  margin_candidates = numeric(),
+  votes_needed = numeric()
 )
 
 
@@ -882,40 +883,40 @@ for (state_number in 1:16) {
 
   # voter change needed for optimization
   clean_up <- clean_up %>%
-    mutate(votes_needed = 0) %>%
+    mutate(margin_candidates = 0) %>%
     mutate(
-      votes_needed = replace(
-        votes_needed,
+      margin_candidates = replace(
+        margin_candidates,
         cdu_optimized == 1,
         cdu[cdu_optimized == 1]
       ),
-      votes_needed = replace(
-        votes_needed,
+      margin_candidates = replace(
+        margin_candidates,
         spd_optimized == 1,
         spd[spd_optimized == 1]
       ),
-      votes_needed = replace(
-        votes_needed,
+      margin_candidates = replace(
+        margin_candidates,
         linke_optimized == 1,
         linke[linke_optimized == 1]
       ),
-      votes_needed = replace(
-        votes_needed,
+      margin_candidates = replace(
+        margin_candidates,
         greens_optimized == 1,
         greens[greens_optimized == 1]
       ),
-      votes_needed = replace(
-        votes_needed,
+      margin_candidates = replace(
+        margin_candidates,
         csu_optimized == 1,
         csu[csu_optimized == 1]
       ),
-      votes_needed = replace(
-        votes_needed,
+      margin_candidates = replace(
+        margin_candidates,
         afd_optimized == 1,
         afd[afd_optimized == 1]
       ),
-      votes_needed = replace(
-        votes_needed,
+      margin_candidates = replace(
+        margin_candidates,
         fdp_optimized == 1,
         fdp[fdp_optimized == 1]
       )
@@ -923,7 +924,7 @@ for (state_number in 1:16) {
     as.data.frame()
 
   #  divide by two as half amount would already amount to flip county
-  clean_up <- clean_up %>% mutate(votes_halved = ceiling(votes_needed / 2))
+  clean_up <- clean_up %>% mutate(votes_needed = ceiling(margin_candidates / 2))
 
   # margins between first and second as data frame for graph (not optimized!!!)
   clean_up <- clean_up %>%
@@ -981,8 +982,8 @@ for (state_number in 1:16) {
       "state",
       "mandate_actual",
       "mandate_optimized",
-      "votes_needed",
-      "votes_halved"
+      "margin_candidates",
+      "votes_needed"
     )))
 
   # merge with data frame for analysis
@@ -1112,13 +1113,13 @@ rm(graph_margins)
 # kick out counties, where no changed occurred after optimization
 ueberhangmandate <- counties %>%
   filter(mandate_actual != mandate_optimized) %>%
-  arrange(votes_needed) %>%
+  arrange(margin_candidates) %>%
   mutate(rank = 1:n())
 # cumulative votes (sum from all votes, which had a closer margin; meaning less
 # votes need to be shifted for the county to flip)
 ueberhangmandate$cummulative_votes <- 0
 for (row in 1:nrow(ueberhangmandate)) {
-  ueberhangmandate[row, 9] <- sum(ueberhangmandate$votes_halved[1:row])
+  ueberhangmandate[row, 9] <- sum(ueberhangmandate$votes_needed[1:row])
   rm(row)
 }
 
@@ -1133,7 +1134,7 @@ rm(tmp)
 # only keep three 
 ueberhangmandate_reform <- ueberhangmandate %>% 
   group_by(state) %>%
-  slice_min(order_by = votes_needed, n =3)
+  slice_min(order_by = margin_candidates, n =3)
   
 
 
@@ -1397,8 +1398,8 @@ ueberhangmandate$min_divisor <- as.integer(ueberhangmandate$min_divisor)
 # values can be look up in acutal_election data frame
 ueberhangmandate <- ueberhangmandate %>%
   add_row(
+    margin_candidates = 0,
     votes_needed = 0,
-    votes_halved = 0,
     cummulative_votes = 0,
     min_size = 709,
     max_size = 709,
@@ -1440,15 +1441,15 @@ ueberhangmandate <- ueberhangmandate %>%
  
 dashboard <- map_optimized_election %>%
    mutate(constituency_number = as.character(constituency_number)) %>%
-   left_join(., ueberhangmandate, by = c("constituency_number", "constituency_name", "state", "mandate_actual", "mandate_optimized", "votes_needed", "votes_halved")) %>%
-   mutate(Ueberhang = ifelse(votes_needed == 0, 1, 0))
+   left_join(., ueberhangmandate, by = c("constituency_number", "constituency_name", "state", "mandate_actual", "mandate_optimized", "margin_candidates", "votes_needed")) %>%
+   mutate(Ueberhang = ifelse(margin_candidates == 0, 1, 0))
  
  
  # add election as own row
  dashboard <- dashboard %>% add_row(state = "Bund", 
                                     constituency_name = "Bund",
+                                    margin_candidates = 0,
                                     votes_needed = 0,
-                                    votes_halved = 0,
                                     cummulative_votes=0,
                                     final_size=709)
 

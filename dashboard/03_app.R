@@ -139,15 +139,15 @@ server <- function(input, output) {
             filter(!is.na(cummulative_votes),
                    cummulative_votes >= input$v_voters) %>%
             filter(if(input$ueber_land != "Bund") state_name_long == input$ueber_land else TRUE) %>%
-            filter(state != "Bund") %>%
+            filter(state_name_long != "Bund") %>%
             arrange(cummulative_votes) %>%
             ungroup() %>%
             select(constituency_name, mandate_actual, mandate_optimized,
-                   votes_halved) %>%
-            mutate(votes_halved=as.integer(votes_halved)) %>% 
+                   votes_needed) %>%
+            mutate(votes_needed=as.integer(votes_needed)) %>% 
             rename("Verbleibende Überhangmandate:" = "constituency_name", "Von:" = "mandate_actual", 
                    "Nach:" = "mandate_optimized",
-                   "Stimmen benötigt:" = "votes_halved")})
+                   "Stimmen benötigt:" = "votes_needed")})
     
     # Info Box: Size Parliament    
     output$ueber_info_box_size <- renderInfoBox({
@@ -299,11 +299,11 @@ server <- function(input, output) {
             arrange(cummulative_votes) %>%
             ungroup() %>%
             select(constituency_name, mandate_actual, mandate_optimized,
-                   votes_halved) %>%
-            mutate(votes_halved=as.integer(votes_halved)) %>% 
+                   votes_needed) %>%
+            mutate(votes_needed=as.integer(votes_needed)) %>% 
             rename("Verbleibende Überhangmandate:" = "constituency_name", "Von:" = "mandate_actual", 
                    "Nach:" = "mandate_optimized",
-                   "Stimmen benötigt:" = "votes_halved")})
+                   "Stimmen benötigt:" = "votes_needed")})
     
     # Plot    
     output$direct_mandate_plot <-  renderPlot({

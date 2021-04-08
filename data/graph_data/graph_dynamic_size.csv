@@ -1,4 +1,4 @@
-"constituency_number","constituency_name","state","mandate_actual","mandate_optimized","votes_needed","votes_halved","cummulative_votes","min_size","max_divisor","max_size","min_divisor","selected_divisor","final_size"
+"constituency_number","constituency_name","state","mandate_actual","mandate_optimized","margin_candidates","votes_needed","cummulative_votes","min_size","max_divisor","max_size","min_divisor","selected_divisor","final_size"
 "Election","Election","Election","Election","Election",0,0,0,709,62394.27,709,62202.28,"Election",709
 "207","Ludwigshafen/Frankenthal","rhn","cdu","spd",428,214,214,705,62708,705,62708,"62709",705
 "161","Mittelsachsen","sac","cdu","afd",1403,702,916,701,63026,702,62966,"63000",701

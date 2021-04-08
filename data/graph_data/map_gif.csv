@@ -1,4 +1,4 @@
-"constituency_number","constituency_name","state","mandate_actual","mandate_optimized","votes_needed","votes_halved"
+"constituency_number","constituency_name","state","mandate_actual","mandate_optimized","margin_candidates","votes_needed"
 1,"Flensburg – Schleswig","sch","cdu","cdu",0,0
 2,"Nordfriesland – Dithmarschen Nord","sch","cdu","cdu",0,0
 3,"Steinburg – Dithmarschen Süd","sch","cdu","cdu",0,0
