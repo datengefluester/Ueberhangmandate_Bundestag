@@ -2,29 +2,31 @@
 title: "Ueberhangmandate 2017"
 output: rmarkdown::github_document
 ---
-  
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   fig.path = "README_figs/"
 )
 ```
 
-This is the repository for the blog post published as "TITLE" on "DATE". It contains data from the Bundeswahlleiter.
-
+This is the repository for the blog post published as "Der Bundestag und die Überhangmandate: wenn ja, wie viele?" on 27.04.2021 in [my blog](https://datengefluester.de/der-bundestag-und-die-ueberhangmandate-wenn-ja-wie-viele/). It contains data from the Bundeswahlleiter (German federal returning officer).
 
 ## Folder Layout
-- the blog_text.Rmd is used to create the blog post
-- the scripts folder contains the r scripts to create the data and graphs, which are stored in data and images respectively.
-- the dashboard folder contains the dashboard (the data for which is created with the 01_data_cleaning.R in the scripts folder).
+
+-   the blog_text.Rmd is used to create the blog post
+-   the scripts folder contains the r scripts to create the data and graphs, which are stored in data and images respectively.
+-   the dashboard folder contains the dashboard (the data for which is created with the 01_data_cleaning.R in the scripts folder).
 
 ## Scripts
-- 01_data_cleaning.R
-- 01_parliament_size_calculation.R (this is used in '01_data_cleaning.R')
-- 02_graphs.R
-- 02_themes (this is used in '02_graphs.R')
-- 03_app (the script can be found in the dashboard folder)
+
+-   01_data_cleaning.R
+-   01_parliament_size_calculation.R (this is used in '01_data_cleaning.R')
+-   02_graphs.R
+-   02_themes (this is used in '02_graphs.R')
+-   03_app (the script can be found in the dashboard folder)
 
 ## Packages needed for the project
+
 ```{r , eval = FALSE}
 library(dplyr) # data manipulation
 library(tidyr) # data manipulation
@@ -50,17 +52,8 @@ library(shinydashboard) # for the dashboard
 library(shinyWidgets) # for the dashboard
 ```
 
+# Licence
 
-# Licence 
-The raw election data is published under Data licence Germany – attribution – version 2.0. 
-https://www.govdata.de/dl-de/by-2-0. It can be downloaded from: https://www.bundeswahlleiter.de/dam/jcr/72f186bb-aa56-47d3-b24c-6a46f5de22d0/btw17_kerg.csv.
-In this repository it can be found under 'data/raw/raw.csv'. The data for the historic size of the parliament can be found under: https://www.bundeswahlleiter.de/service/glossar/u/ueberhangmandate.html.
-All other election data was modified by the author.
+The raw election data is published under Data licence Germany – attribution – version 2.0. <https://www.govdata.de/dl-de/by-2-0>. It can be downloaded from [federal returning officer](https://www.bundeswahlleiter.de/dam/jcr/72f186bb-aa56-47d3-b24c-6a46f5de22d0/btw17_kerg.csv). In this repository it can be found under 'data/raw/raw.csv'. The data for the historic size of the parliament can be found under [here](https://www.bundeswahlleiter.de/service/glossar/u/ueberhangmandate.html). All other election data was modified by the author.
 
-The shape files where downloaded from the Berliner Morgenpost (https://interaktiv.morgenpost.de/analyse-bundestagswahl-2017/data/btw17-shapes.zip).
-
-
-
-
-
-
+The shape files were downloaded from the [Berliner Morgenpost](https://interaktiv.morgenpost.de/analyse-bundestagswahl-2017/data/btw17-shapes.zip).

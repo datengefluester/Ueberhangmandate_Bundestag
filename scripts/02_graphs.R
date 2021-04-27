@@ -2,22 +2,18 @@
 ## Packages
 ###############################################################################
 
-# for creating the gif data frame as otherwise >50mb
+# for creating the gif data frame as otherwise >50mb:
 library(dplyr)
 library(tidyr)
 library(stringr)
-# plots
-library(grid)
-library(ggplot2)
-# plots next to each other
-library(ggpubr)
-# packages for maps
-library(rgdal)
-library(rgeos)
-library(mapproj)
-# for gif
-library(gganimate)
-library(transformr)
+library(grid) # plots
+library(ggplot2) # plots
+library(ggpubr) # plots next to each other
+library(rgdal) # for maps
+library(rgeos) # for maps
+library(mapproj) # for maps
+library(gganimate) # for gif
+library(transformr) # for gif
 
 
 ###############################################################################
@@ -55,11 +51,17 @@ shp_constituencies <- readOGR("data/btw17-shapes/wahlkreise_small.shp",
 # read in data
 graph_historic_size <- read.csv("./data/graph_data/graph_historic_size.csv")
 
+
 # graph
 graph_historic_size %>%
   ggplot(aes(x = year, y = size, group = 1)) +
   geom_line(aes(group = 1), color = "#009E73", size = 0.65) +
   geom_hline(yintercept = 598, size = 0.2, linetype='longdash', color = "black") + 
+  geom_vline(xintercept = 1990, size = 0.075, linetype='dotted', color = "black") +
+  annotate("text",
+           x = 1990.5, y = 790, label = "Wiedervereinigung",
+           size = 1.5, color = "black", hjust = 0
+  ) +
   scale_y_continuous(
     position = "right",
     limits = c(300, 820),
@@ -70,9 +72,9 @@ graph_historic_size %>%
     breaks = sort(c(seq(1960, 2022, by = 10), 1949)),
     limits = c(1945, 2021),
     labels = c(
-      "1949" = "1949", "1960" = "60", "1970" = "70",
-      "1980" = "80", "1990" = "90", "2000" = "2000",
-      "2010" = "10", "2020" = "20"
+      "1949" = "1949", "1960" = "1960", "1970" = "1970",
+      "1980" = "1980", "1990" = "1990", "2000" = "2000",
+      "2010" = "2010", "2020" = "2020"
     ),
     expand = c(0, 0)
   ) +
@@ -118,137 +120,6 @@ graph_historic_size %>%
 ggsave("./images/graph_historic_size.jpg", width = 4, height = 3)
 
 
-
-
-###############################################################################
-## Distribution of size of counties by Erststimmen cast
-###############################################################################
-
-# Distribution Graph  ---
-
-# read in data
-graph_county_distribution <- read.csv("./data/graph_data/graph_county_distribution.csv")
-
-# graph size counties
-size <- graph_county_distribution %>%
-  ggplot(aes(y = percent_eligible_first_vote, x = eligible_first_vote)) +
-  geom_smooth(span = 0.1, color = "#009E73") +
-  scale_x_continuous(
-    breaks = c(seq(160000, 260000, 25000)),
-    labels = c(
-      "160000" = "160", "185000" = "185", "210000" = "210",
-      "235000" = "235", "260000" = "260.000"
-    )
-  ) +
-  scale_y_continuous(
-    position = "right",
-    limits = c(0, 1.05),
-    breaks = c(seq(0.25, 1, 0.25)),
-    expand = c(0, 0)
-  ) +
-  annotate("text",
-    x = 260000, y = 1.025, label = "100%",
-    size = 2, color = "black", hjust = 0.6
-  ) +
-  annotate("text",
-    x = 260000, y = 0.975, label = "der Wahlkreise",
-    size = 2, color = "black", hjust = 0.85
-  ) +
-  annotate("text",
-    x = 260000, y = 0.775, label = "75",
-    size = 2, color = "black", hjust = 0.2
-  ) +
-  annotate("text",
-    x = 260000, y = 0.525, label = "50",
-    size = 2, color = "black", hjust = 0.2
-  ) +
-  annotate("text",
-    x = 260000, y = 0.275, label = "25",
-    size = 2, color = "black", hjust = 0.2
-  ) +
-  labs(
-    title = "Größe der Wahlkreise",
-    subtitle = "nach wahlberechtigten Erststimmen oder weniger.*"
-  ) +
-  coord_cartesian(clip = "off") +
-  line_chart_theme() +
-  theme(
-    axis.text = element_text(size = 5)
-  )
-
-
-# graph margin counties
-margins <- graph_county_distribution %>%
-  ggplot(aes(y = cum_percent_margin, x = margin)) +
-  geom_smooth(span = 0.1, color = "#009E73") +
-  scale_y_continuous(
-    limits = c(0, 1.05),
-    breaks = c(seq(0.25, 1, 0.25)),
-    expand = c(0, 0)
-  ) +
-  annotate("text",
-    x = 73500, y = 1.025, label = "100%",
-    size = 2, color = "black", hjust = 0.65
-  ) +
-  annotate("text",
-    x = 73500, y = 0.975, label = "der Wahlkreise",
-    size = 2, color = "black", hjust = 0.85
-  ) +
-  annotate("text",
-    x = 73500, y = 0.775, label = "75",
-    size = 2, color = "black", hjust = 0.2
-  ) +
-  annotate("text",
-    x = 73500, y = 0.525, label = "50",
-    size = 2, color = "black", hjust = 0.2
-  ) +
-  annotate("text",
-    x = 73500, y = 0.275, label = "25",
-    size = 2, color = "black", hjust = 0.2
-  ) +
-  scale_x_continuous(
-    breaks = c(seq(0, 70000, 17000)),
-    labels = c(
-      "0" = "0", "17000" = "17", "34000" = "34",
-      "51000" = "51", "70000" = "70.000"
-    )
-  ) +
-  labs(
-    title = "Abstand Erst- und Zweitwahl",
-    subtitle = " nach Erststimme. Kummulierten Abstand oder weniger.*"
-  ) +
-  coord_cartesian(clip = "off") +
-  line_chart_theme() +
-  theme(
-    axis.text = element_text(size = 5)
-  )
-
-
-# combine graphs margin and distribution size ---
-margins_size <- ggarrange(margins, size,
-  ncol = 2, nrow = 1,
-  common.legend = FALSE
-)
-
-# add caption
-margins_size <- annotate_figure(margins_size,
-  bottom = text_grob("* in 1.000. \nQuelle: Bundeswahlleiter, \nEigene Berechnungen",
-    color = "#3B3B3B",
-    hjust = 1, x = 0.98,
-    size = 4
-  ),
-)
-
-# add background color
-margins_size <- margins_size + bgcolor("#F0F0F0") + border("#F0F0F0")
-margins_size
-
-# save graph
-ggsave("./images/graph_margins_distribution.jpg", width = 4, height = 3)
-
-
-
-
 ###############################################################################
 ## Dynamic Size Bundestag Graph
 ###############################################################################
@@ -272,7 +143,7 @@ graph_dynamic_size %>%
     size = 2, color = "black", hjust = 1
   ) +
   annotate("text",
-    x = 260000, y = 721, label = "Sitze",
+    x = 260000, y = 721, label = "Sitze im Bundestag",
     size = 2, color = "black", hjust = 1
   ) +
   annotate("text",
@@ -304,24 +175,24 @@ graph_dynamic_size %>%
     size = 2, color = "black", hjust = 1
   ) +
   scale_x_continuous(
-    breaks = sort(c(seq(0, 240000,
-      by = 60000
-    ))),
+    breaks = c(0,60000,120000,180000,240000),
     limits = c(-5000, 260000),
     expand = c(0, 0),
     labels = c(
-      "0" = "0", "60000" = "60",
-      "120000" = "120",
-      "180000" = "180",
+      "0" = "0", "60000" = "60.000",
+      "120000" = "120.000",
+      "180000" = "180.000",
       "240000" = "240.000"
     )
   ) +
   labs(
-    title = "Größe des Bundestages nach Ersttimmenverschiebung",
-    subtitle = "in 1.000 verschobenen Stimmen.",
-    caption = "Quelle: Bundeswahlleiter, \n Eigene Berechnungen"
-  ) +
-  line_chart_theme()
+    title = "Größe des Bundestages nach Erststimmenverschiebung",
+    subtitle = "in verschobenen Stimmen.",
+    caption = "Quelle: Bundeswahlleiter, \n Eigene Berechnungen",
+    x = "Verschobene Erststimmen") +
+  line_chart_theme() +
+  theme(axis.title.x = element_text(size = 7),
+        plot.subtitle = element_text(margin = unit(c(0, 0, -0.5, 0), "line")))
 
 # save graph
 ggsave("./images/dynamic_size_graph_pic.jpg", width = 4, height = 3)
@@ -343,7 +214,7 @@ graph_parliament_sizes_scenarios %>%
                               'Bundestagswahl 2017 ')) +
   scale_y_continuous(
     expand = c(0, 0),
-    position = "right",
+    position = "left",
     breaks = c(300,600,900),
     limits = c(0,950)
   ) +
@@ -467,6 +338,8 @@ ggsave("./images/optimized_election_map_pic.jpg", width = 2, height = 2.7)
 
 # read in data
 map_gif <- read.csv("./data/graph_data/map_gif.csv")
+map_optimized_election <- read.csv("./data/graph_data/map_optimized_election.csv")
+graph_dynamic_size <- read.csv("./data/graph_data/graph_dynamic_size.csv")
 
 # create combination for each county with each number of votes ('states')
 # of the gif
@@ -588,7 +461,7 @@ p_gif <- gif %>%
     na.translate = F
   ) +
   labs(
-    title = "Überhangmandate",
+    title = "Dynamische Veränderung der Überhangmandate\n2017",
     subtitle = "Wählerstimmen verschoben: {closest_state}",
     caption = "Quelle: Bundeswahlleiter \n Eigene Berechnungen"
   ) +
@@ -606,8 +479,8 @@ p_gif <- gif %>%
 
 # add transition states
 p_gif <- p_gif + transition_states(States,
-  transition_length = 5,
-  state_length = 80
+                                   transition_length = 5,
+                                   state_length = 80
 )
 
 # render gif
@@ -615,7 +488,6 @@ animate(p_gif, height = 800, width = 800)
 
 # save gif
 anim_save("./images/dynamic_map.gif", width = 2, height = 2.7)
-
 
 ###############################################################################
 # clear console

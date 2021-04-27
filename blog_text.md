@@ -1,144 +1,106 @@
 # Die Wahlrechtsreform, der Bundestag und seine Abgeordneten: Und wenn ja, wie viele?
 
-Im September ist Bundestagswahl. Hierbei kommen erstmal die 2020
+Im September ist Bundestagswahl. Hierbei kommen erstmals die 2020
 beschlossenen Änderungen am Wahlgesetz zur Anwendung. Dabei wurden die
-letzten Anpassungen erst kurz vor der letzten Wahl beschlossen. Grund
-für die erneute Reform ist die aktuelle Größe des Bundestages von 709
-Abgeordneten. Laut Grundgesetz sind nur 598 Sitze vorgesehen. Eine
-Reform schien also angebracht. Grund genug die aktuelle Situation zu
-betrachten und zu analysieren.
+letzten Anpassungen erst kurz vor der letzten gesamtdeutschen Wahl 2017
+beschlossen. Grund für die erneute Reform ist die aktuelle Größe des
+Bundestages von 709 Abgeordneten. Laut Grundgesetz sind nur 598 Sitze
+vorgesehen. Eine Reform schien also angebracht. Grund genug die aktuelle
+Situation zu betrachten und zu analysieren.
 
-Doch zunächst einmal stellt sich die Frage: ist der Bundestag wirklich
-zu groß? Hierfür lohnt sich ein Blick ins Ausland. Weltweit ist nur der
+Zunächst einmal stellt sich die Frage: ist der Bundestag wirklich zu
+groß? Hierfür lohnt sich ein Blick ins Ausland. Weltweit ist nur der
 chinesische Volkskongress größer als der Deutsche Bundestag. In diesem
-bestimmen fast 3000 Mitglieder die Politik Chinas. Allerdings
-repräsentiert ein Mitglied des Kongresses 450.000 Menschen, während ein
-deutscher Abgeordneter nur ca. 114.000 Wähler vertritt. Allerdings ist
-das deutsche Verhältnis von Parlamentariern zu Wähler keine Sonderheit.
-Auch die Mitglieder des niederländischen oder französischen Parlaments
-vertreten in etwa so viele Wähler wie ihre deutschen Kollegen.
-Gleichzeitig repräsentieren die einzelnen Abgeordneten in der Schweiz
-oder in Belgien weniger Wähler als in Deutschland.
+bestimmen fast 3000 Mitglieder die Politik Chinas. Gleichwohl
+repräsentiert dort ein Mitglied des Kongresses 450.000 Menschen, während
+ein deutscher Abgeordneter nur ca. 114.000 Wähler vertritt. Das deutsche
+Verhältnis von Parlamentariern zu Wähler ist keine Sonderheit. Die
+Mitglieder des niederländischen oder französischen Parlaments vertreten
+in etwa so viele Wähler wie ihre deutschen Kollegen. In der Schweiz oder
+in Belgien vertreten die gewählter Vertreter jeweils weniger Wähler als
+in Deutschland.
 
 Im internationalen Kontext gesehen, muss man also nicht unbedingt zum
 Schluss kommen, dass der Bundestag zu groß ist. Die Notwendigkeit einer
 Wahlreform ist allerdings historisch begründet. Für einen Großteil
 seines Bestehens umfasste das westdeutsche Parlament ungefähr 520
 Abgeordneten. Nach der ersten gesamtdeutschen Wahl 1990 erhöhte sich die
-Größe allerdings auf 663 Mitglieder. Als Reaktion darauf beschloss der
-Bundestag 1996 eine Reduzierung der Normgröße auf bis heute geltenden
-598 Sitze. In den Folgejahren verringerte sich hierdurch die Größe des
-Bundestags bevor diese nach der Bundestagswahl 2017 sprunghaft anstieg.
+Größe des Bundestags auf 663 Mitglieder. Als Reaktion darauf beschloss
+der Bundestag 1996 eine Reduzierung der Normgröße auf die bis heute
+geltenden 598 Sitze. Nach der Bundestagswahl 2017 stieg die Größe
+sprunghaft auf 709 Mitglieder an.
 
 ![](images/graph_historic_size.jpg)
 
 Aber warum sitzen überhaupt so viele Abgeordnete im aktuellen Bundestag?
-Anders als beispielsweise in den USA oder dem Vereinigtem Königreich,
-werden in Deutschland einzelne Wahlkreise nicht nur direkt von
-Abgeordneten vertreten. Stattdessen haben Wähler bei der Bundestagswahl
-zwei Stimmen, die sie abgeben können. Die Erststimme entscheidet
-darüber, welche(r) Abgeordnete den Wahlkreis direkt im Bundestag
-vertritt (Direktmandat). Die Zweitstimme bestimmt, welche Partei wie
-viele Abgeordnete in den Bundestag schicken darf (Listenmandat). Für
-jeden Wahlkreis wird ein weiterer Abgeordneter über diese Stimme
-entschieden. Bei 298 in der Verfassung vorgesehenen Wahlkreisen ergibt
-sich ein Parlament mit 598 Abgeordneten.
+Bei einer Bundestagswahl hat jeder Wähler zwei Stimmen, die er abgeben
+kann. Die Erststimme entscheidet darüber, welche(r) Abgeordnete den
+Wahlkreis direkt im Bundestag vertritt (Direktmandat). Demgegenüber
+bestimmt die Zweitstimme, welche Partei wie viele Abgeordnete in den
+Bundestag schicken darf (Listenmandat). Für jeden Wahlkreis ist ein
+weiterer Abgeordneter, der über die Liste entschieden wird vorgesehen.
+Bei 298 in der Verfassung vorgesehenen Wahlkreisen ergibt sich ein
+Parlament mit 598 Abgeordneten.
 
 Nun kann es passieren, dass eine Partei mehr Direktmandate erhält, als
 ihr nach Zweitstimmen zustehen würden. Diese zusätzlichen Mandate sind
 die sogenannten Überhangmandate. Zu Beginn der Bundesrepublik waren
 diese oftmals kein großes Problem. Noch 1997 erklärt das
-Bundesverfassungsgericht Überhangmandate für verfassungskonform.
-Trotzdem konnte, aufgrund der Berechnung, eine für eine Partei abgebende
-Zweitstimme dazu führen, dass diese über weniger Sitze im Bundestag
-verfügte. Weiterhin nahm das Gewicht der Überhangmandate mit dem
-Aufkommen der Grünen und der Linken zu, da die Zweitstimmen sich auf
-mehr Parteien verteilten, der Großteil der Direktmandate weiterhin an
-CDU/CSU und SPD ging. Folglich befand das oberste deutsche Gerichte das
-damals geltende Wahlrecht in zwei Urteilen, 2008 und 2012, als
-verfassungswidrig. Als Reaktion darauf beschloss der Bundestag im
-Februar 2013 ein neues Wahlrecht, welches die Überhangmandate
-ausgleicht. Nach dem Gesetz wird ein mehrstufiges System angewandt,
-welches die Überhangmandate ausgleicht. Dieser Ausgleich ist für den
-Anstieg der Größe des Bundestags nach der letzten Bundestagswahl
-verantwortlich.
+Bundesverfassungsgericht Überhangmandate für verfassungskonform. Durch
+die komplexe Berechnung der Mandate konnte eine zusätzliche Zweitstimme
+für eine Partei dazu führen, dass diese über weniger Sitze im Bundestag
+verfügte also ohne die Stimme. Zusätzlich nahm das Gewicht der
+Überhangmandate mit dem Aufkommen der Grünen und der Linken zu, da die
+Zweitstimmen sich auf mehr Parteien verteilten, der Großteil der
+Direktmandate jedoch weiterhin an CDU/CSU und SPD ging. Folglich befand
+das oberste deutsche Gerichte das damals geltende Wahlrecht in zwei
+Urteilen, 2008 und 2012, als verfassungswidrig. Als Reaktion darauf
+beschloss der Bundestag im Februar 2013 ein neues Wahlrecht, welches die
+Überhangmandate ausgleicht.
 
 ![](images/map_actual_election.jpg)
 
-Im ersten Schritt werden hierbei auf Länderebene die Direktmandate und
+Im ersten Schritt werden hierbei auf *Länderebene* die Direktmandate und
 die zustehenden Sitze entsprechend der Zweitstimmen für die Parteien
 berechnet. Entstehen bei dieser Berechnung mehr Direktmandate für eine
 Partei als ihr nach Zweitstimmen zustehen würden, entstehen weiterhin
 Überhangmandate. Um diese Überhangmandaten auszugleichen wird im zweiten
 Schritt die Anzahl der Abgeordneten im Bundestag erhöht. Dies geschieht
-so lange bis alle Parteien, entsprechend ihrer Zweitstimmen im Bundestag
-vertreten sind. Etwas vereinfacht formuliert bedeutet das, dass die
-Anzahl der Mandate für die Partei mit den meisten Überhangmandaten,
-gleichgesetzt wird mit ihrer prozentualen Zustimmung nach Zweitstimmen.
-Daraus ergibt sich eine Umrechnung von Zweitstimmen zu
-Bundestagsabgeordneten. Die Anzahl der Mandate für die anderen Parteien
-berechnet sich entsprechend. Durch die Umrechnung wird garantiert, dass
-jede Partei über die Menge an Sitzen im Bundestag verfügen, die ihnen
-nach abgegeben Zweitstimmen zustehen. Die sich daraus ergebenen neuen
-Sitze werden anschließend auf Grundlage der abgegebenen Stimmen für die
-Parteien in den Bundesländern wieder auf die Landeslisten verteilt. Je
-mehr Menschen in einem Bundesland also für eine Partei gewählt haben,
-desto mehr Politiker aus diesem Landesverband werden nach Berlin
-geschickt.
+so lange bis alle Parteien, die mindestens fünf Prozent der Stimmen
+erhalten haben, entsprechend ihrer Zweitstimmen im Bundestag vertreten
+sind.
 
-Für die Bundestagswahl 2017 bedeutet dies, dass die 6,2 Prozent
-Zweitstimmen für die CSU zunächst umgerechnet werden, sodass die im
-Bundestag vertretenen Parteien auf 100 Prozent der Stimmen kommen. Der
-Grund für die Umrechnung ist die Tatsache, dass ein Teil der
-angetretenen Parteien, aufgrund der fünf-Prozent-Hürde, nicht im
-Bundestag vertreten ist. Hieraus ergibt sich eine effektiv prozentuale
-Verteilung der Sitze auf die CSU von ungefähr 6,5 Prozent. Diese 6,5
-Prozent werden, etwas vereinfacht gesagt, anschließend gleichgesetzt mit
-den 46 Mandaten, auf die welche die Partei ein Anrecht besitzt. Diese
-errechnen sich aus der Summe an Überhangmandaten, welche die CSU in
-Bayern erhalten hat und der Sitze, die der Partei nach Zweitstimmen
-zustehen. Daraus ergibt sich eine Umrechnung von ungefähr einem Prozent
-der insgesamt abgegebenen Zweitstimmen zu 7,09 Abgeordneten.
-Anschließend erhalten die übrigen Parteien Abgeordnete zugewiesen, die
-sie dann auf die Landeslisten entsprechend der in Bundesländern erhalten
-Stimmen verteilen.
+Um zu dies veranschaulichen: Bei der Bundestagswahl 2017 entfielen 6,2
+Prozent der Zweitstimmen auf die CSU. Da einige Stimmen für kleinere
+Parteien nicht im Bundestag vertreten sind (wegen der
+fünf-Prozent-Hürde), erhöht sich dieser Anteil auf 6.5 Prozent.
+Anschließend wird, vereinfacht gesagt, die Anzahl der Mandate für die
+Partei mit den prozentual am meisten Überhangmandaten als Grundlage für
+die Berechnung der Mandate heran gezogen. Für Bundestagswahl 2017 war
+dies die CSU. Entsprechend werden die 6,5 Prozent der CSU gleichgesetzt
+werden mit den 46 Mandaten, auf welche die Partei nach Direkt- und
+Listenmandaten ein Anrecht besitzt. Hieraus ergibt sich eine Umrechnung
+von ungefähr einem Prozent der insgesamt abgegebenen Zweitstimmen zu
+7,09 Abgeordneten ≙ 6.8% ~ 7.09/1%). Im Anschluss erhalten auch die
+übrigen Parteien 7,09 Abgeordnete für jedes Prozent der Zweitstimmen. So
+kommt es zur letztendlichen Größe des Bundestags von 709 Abgeordneten.
 
-Doch wie viele Stimmen bestimmen darüber, ob Parteien Überhangmandate
-erhalten? Entscheidend für diese Betrachtung ist der Abstand zwischen
-den Kandidaten, welche gewählt wurden den Wahlkreis zu repräsentieren
-und denen, welche am zweitmeisten Stimmen erhalten haben. Dabei kann man
-allerdings nicht sagen, welches Direktmandat ein Überhangmandat
-darstellt, da nur die Summe der Direktmandate zu Überhangmandaten
-führen. Ob dies nun das Mandat für Ingolstadt oder Rosenheim ein
-Überhangmandat für die CSU darstellt, ist für die Berechnung für die
-letztendliche Größe des Bundestages irrelevant.
+Daraus ergibt sich die spannende Frage: wie viele abgegebene Stimmen
+überhaupt darüber bestimmen, ob Parteien Überhangmandate erhalten. Dabei
+kann es passieren, dass eine Partei für ihren Direktkandidaten eine
+Stimme mehr erhält, als der Kandidat mit den zweitmeisten Stimmen. Wenn
+man nun alle Wahlkreise zusammen nimmt, kann man berechnen, wie viele
+Stimmen darüber entscheiden, dass der Bundestag so groß ist, wie er ist.
+Aus dem bereits erwähnten Grund, dass potenziell jedes Direktmandat ein
+Überhangmandat für eine Partei repräsentiert, wird für die folgende
+Berechnung angenommen, dass die Wahlkreise mit dem geringsten Abstand
+zwischen Wahlkreisgewinner und dem mit den zweitmeisten Stimmen
+Überhangmandate darstellen. Dadurch wird die kleinstmögliche
+Verschiebung an Stimmen berechnet, die von einer Partei zu einer anderen
+Partei wechseln müssten, damit in einem Bundesland und damit auch auf
+Bundesebene keine Überhangmandate mehr für Parteien anfallen.
 
-Zusätzlich relevant für die Berechnung ist die Größe der einzelnen
-Wahlkreis. Zwar sollen diese möglichst gleich groß und geografisch
-einheitlich sein, trotzdem ist es unmöglich, aufgrund der Struktur der
-einzelnen Landkreise, gleich große Wahlkreise zu bilden. So war bei der
-Bundestagswahl 2017 der größte Wahlkreis Fürth über 255.000
-Wahlberechtigte groß, während der kleinste Wahlkreis Coburg nur knapp
-unter 160.000 Wahlberechtigte umfasste. Entsprechend unterschiedlich
-sind auch die Abstände zwischen der Erst- und Zweitwahl in den einzelnen
-Wahlkreisen. Weiterhin haben nicht alle Wahlberechtigten ihre Stimme
-abgegeben. Im Schnitt wurden in jedem Wahlkreis 155.000 Stimmen
-abgegeben. Der Unterschied zwischen Erst- und Zweitwahl betrug dabei
-durchschnittlich 20.800 Stimmen oder 13 % der gültigen Erststimmen.
-
-![](images/graph_margins_distribution.jpg)
-
-Wenn man nun alle Wahlkreise zusammen nimmt, kann man berechnen, wie
-viele Stimmen darüber entscheiden, dass der Bundestag so groß ist, wie
-er ist. Aus dem bereits erwähnten Grund, dass potenziell jedes
-Direktmandat ein Überhangmandat für eine Partei darstellt, werden für
-die folgende Berechnung die Mandate nach Differenz zwischen Erst- und
-Zweitwahl sortiert. Dadurch wird die kleinstmögliche Verschiebung an
-Stimmen berechnet, die von einer Partei zu einer anderen Partei wechseln
-müssten, damit in einem Bundesland und damit auch auf Bundesebene keine
-Überhangmandate mehr für Parteien anfallen.
-
-Etwas konkreter ausgedrückt: Das Mandat in Freiburg fiel bei der
+Etwas konkreter ausgedrückt: Das Direktmandat für Freiburg fiel bei der
 Bundestagswahl 2017 an Michael Bamberger von der CDU. Die Kandidatin der
 Grünen, Kerstin Andreae, erhielt 4141 Stimmen weniger. Folglich wird für
 die nachstehende Berechnung angenommen, dass 2071 Stimmen von der CDU an
@@ -146,22 +108,21 @@ die Grünen hätten gehen müssen, damit dieses Mandat kein Direktmandat
 und somit auch kein Überhangmandate für die CDU mehr repräsentiert.
 Folgt man diesen Annahmen, so kann man die Anzahl der Stimmen berechnen,
 die die Größe des Bundestags bestimmen. In der Summe sind dies etwa
-230.000 Stimmen oder etwas weniger als 0.5 Prozent der insgesamt
-abgegebenen Erststimmen.
+240.000 von ca. 45 Millionen oder 0.5 Prozent abgegebenen Stimmen.
+Anschließend sitzen anstatt 46 aus 298 Wahlkreisen keine mehr
+Überhangmandate im Bundestag.
+
+Wie man an folgender Grafik erkennen kann, würde eine Verschiebung der
+Erstimmen bezüglich der Überhangmandate eine deutliche Verkleinerung des
+Bundestags bedeuten. Beispielsweise würde eine Verschiebung von 160.000
+Erststimmen eine Reduzierung auf 625 Sitze bedeuten. Dabei ändert sich
+nicht das Verhältnis der Parteien im Bundestag. Allerdings ändern sich
+die Direktrepräsentanten für manche Wahlkreise. So würde für Freiburg
+nun Kerstin Andreae von den Grünen im Bundestag sitzen.
 
 ![](images/dynamic_size_graph_pic.jpg) In der Grafik fallen zwei Sachen
-ins Auge. Zum einen, dass die Verkleinerung des Bundestages stufenweise
-passiert. Der Grund hierfür ist, dass das wegfallen eines
-Überhangmandates nicht zwangsweise die Umrechnung der Stimmen zu
-Mandaten beeinträchtigt. Für die Berechnung sind die Überhangmandate
-nach Abstand zwischen den Kandidaten sortiert. Dadurch kann es dazu
-kommen, dass zwar ein Überhangmandat für die SPD in einem Schritt weg
-fällt, die CSU aber immer noch prozentual am meisten Überhangmandate
-besitzt. Deswegen wird weiterhin die Umrechnung von Stimmen zu Sitzen
-der CSU verwendet wird und die Größe des Bundestages bleibt unverändert.
-
-Zum Anderen fällt auf, dass der Bundestag auch ohne Überhangmandate
-nicht die Normgröße von 598 besitzt. Dies liegt daran, dass neben den
+ins Auge. Zum einen, dass der Bundestag auch ohne Überhangmandate nicht
+die Normgröße von 598 besitzt. Dies liegt daran, dass neben den
 Überhangmandaten auch die Zweitstimmenmandate auf Länderebene berechnet
 werden. Je nach Wahlbeteiligung und der Anzahl von Stimmen auf nicht im
 Bundestag vertretenen Parteien, kann die Umrechnung von Stimmen zu
@@ -172,6 +133,16 @@ zur Wahl gingen, diese aber die weiterhin zum Großteil mit der
 Zweitstimme CSU wählten, der Bundestag auch ohne Überhangmandate für die
 Partei sehr groß wäre, da die Bayrischen Mandate im Verhältnis, weniger
 Stimmen repräsentierten.
+
+Zum Anderen fällt auf, dass die Verkleinerung des Bundestages
+stufenweise passiert. Der Grund hierfür ist, dass das wegfallen eines
+Überhangmandates nicht zwangsweise die Umrechnung der Stimmen zu
+Mandaten beeinträchtigt. Für die Berechnung sind die Überhangmandate
+nach Abstand zwischen den Kandidaten sortiert. Dadurch kann es dazu
+kommen, dass zwar ein Überhangmandat für die SPD in einem Schritt weg
+fällt, die CSU aber immer noch prozentual am meisten Überhangmandate
+besitzt. Deswegen wird weiterhin die Umrechnung von Stimmen zu Sitzen
+der CSU verwendet wird und die Größe des Bundestages bleibt unverändert.
 
 ![](images/dynamic_map.gif)
 
